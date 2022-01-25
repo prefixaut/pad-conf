@@ -1,0 +1,20 @@
+.app {
+  display: grid;
+  grid-template-rows: auto max-content;
+}
+
+.app-header {
+  background-color: #282c34;
+  width: 100%;
+  padding: 2rem;
+  font-size: 1.85rem;
+  text-align: center;
+  color: white;
+}
+
+.app-body {
+  background-color: #0e1a25;
+  color: white;
+  padding: 6rem 2rem 6rem;
+  width: 100%;
+}
