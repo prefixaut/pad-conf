@@ -5,9 +5,9 @@
   "license": "MIT",
   "private": true,
   "dependencies": {
-    "@chakra-ui/react": "^1.7.4",
-    "@emotion/react": "^11",
-    "@emotion/styled": "^11",
+    "serialport": "^9.2.8"
+  },
+  "devDependencies": {
     "@testing-library/jest-dom": "^5.16.1",
     "@testing-library/react": "^12.1.2",
     "@testing-library/user-event": "^13.5.0",
@@ -15,47 +15,33 @@
     "@types/node": "^17.0.10",
     "@types/react": "^17.0.38",
     "@types/react-dom": "^17.0.11",
+    "@types/serialport": "^8.0.2",
     "@vitejs/plugin-react": "^1.1.4",
     "autoprefixer": "^10.4.2",
+    "eslint-plugin-jsx-a11y": "^6.5.1",
+    "eslint-plugin-react": "^7.28.0",
     "fastify": "^3.25.3",
     "fastify-websocket": "^4.0.0",
     "framer-motion": "^5",
+    "grommet": "^2.20.0",
+    "grommet-icons": "^4.7.0",
     "pino-pretty": "^7.3.0",
+    "polished": "^4.1.4",
     "postcss": "^8.4.5",
+    "postcss-atroot": "^0.2.3",
     "react": "^17.0.2",
     "react-dom": "^17.0.2",
-    "serialport": "^9.2.8",
+    "styled-components": "^5.3.3",
     "tailwindcss": "^3.0.16",
     "ts-node": "^10.4.0",
     "typescript": "^4.5.4",
     "vite": "^2.7.13",
     "web-vitals": "^2.1.4"
   },
-  "devDependencies": {
-    "@types/serialport": "^8.0.2"
-  },
   "scripts": {
     "dev": "vite dev",
     "backend": "ts-node src/backend/server.ts",
     "build": "vite build",
     "preview": "vite preview"
-  },
-  "eslintConfig": {
-    "extends": [
-      "react-app",
-      "react-app/jest"
-    ]
-  },
-  "browserslist": {
-    "production": [
-      ">0.2%",
-      "not dead",
-      "not op_mini all"
-    ],
-    "development": [
-      "last 1 chrome version",
-      "last 1 firefox version",
-      "last 1 safari version"
-    ]
   }
 }

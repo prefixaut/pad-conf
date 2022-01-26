@@ -20,3 +20,4 @@ export interface Device {
 }
 
 export type MessageType = 'confirmation' | 'refresh' | 'list' | 'select' | 'command' | 'meassurement';
+export type PadType = 'ddr' | 'pump' | 'dance';

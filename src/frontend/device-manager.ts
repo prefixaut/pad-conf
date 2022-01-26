@@ -9,7 +9,7 @@ export class DeviceManager {
     private static messageHandlers: MessageHandler[] = [];
     private static closeHandlers: CloseHandler[] = [];
 
-    private constructor() {}
+    private constructor() { }
 
     static addMesssageHandler(handler: MessageHandler) {
         if (!DeviceManager.messageHandlers.includes(handler)) {
@@ -43,15 +43,19 @@ export class DeviceManager {
         }
     }
 
-    static connect(): Promise<void> {
+    static isConnected() {
+        return DeviceManager.socket != null;
+    }
+
+    static connect(url: string): Promise<void> {
         return new Promise((resolve, reject) => {
             try {
-                DeviceManager.socket = new WebSocket(`ws://localhost:8000/`);
-                
+                DeviceManager.socket = new WebSocket(url);
+
                 DeviceManager.socket.addEventListener('open', event => {
                     resolve();
                 });
-            
+
                 DeviceManager.socket.addEventListener('message', async event => {
                     const msg = JSON.parse(event.data);
 
@@ -67,7 +71,7 @@ export class DeviceManager {
                         }
                     }
                 });
-        
+
                 DeviceManager.socket.addEventListener('close', () => {
                     DeviceManager.disconnect();
                 });
@@ -83,7 +87,7 @@ export class DeviceManager {
         }
 
         DeviceManager.socket = null;
-                    
+
         for (const handler of DeviceManager.closeHandlers) {
             try {
                 handler();
@@ -110,7 +114,7 @@ export class DeviceManager {
                         finished = true;
                         resolve(res);
                     }
-                } catch (e) {}
+                } catch (e) { }
             };
             DeviceManager.socket.addEventListener('message', listener);
 

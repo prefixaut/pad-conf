@@ -9,7 +9,7 @@ const app = fastify({ logger: { prettyPrint: true } });
 app.register(fastifyWs);
 
 app.get('/', { websocket: true }, (wsConn, req) => {
-    
+
     let serialConn: SerialPort | null = null;
     let devices: SerialPort.PortInfo[] = [];
 
@@ -25,7 +25,7 @@ app.get('/', { websocket: true }, (wsConn, req) => {
     function send(message: Message) {
         wsConn.socket.send(JSON.stringify(message));
     }
-    
+
     wsConn.socket.on('message', async rawData => {
         try {
             const msg: Message = JSON.parse(rawData.toString());

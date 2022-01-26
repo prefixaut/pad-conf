@@ -1,0 +1,18 @@
+@layer components {
+    .editor {
+        display: flex;
+
+        .editor-content {
+            flex: 0 0 auto;
+            width: 60%;
+        }
+
+        .input-display {
+            flex: 1 1 auto;
+
+            .pad-display {
+                width: 100%;
+            }
+        }
+    }
+}
