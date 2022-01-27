@@ -1,12 +1,12 @@
 import React from 'react';
 
-import { PanelSettings } from '../common';
+import { Panel } from '../common';
 import { PadDisplay } from './PadDisplay';
 
 interface EditorProps {}
 
 interface EditorState {
-    panels: PanelSettings[];
+    panels: Panel[];
     selectedPanel: number;
 }
 

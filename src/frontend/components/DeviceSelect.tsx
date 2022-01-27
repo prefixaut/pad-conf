@@ -1,85 +1,40 @@
-import { Select } from 'grommet';
+import { Button, FormField, Select } from 'grommet';
+import { Refresh } from 'grommet-icons';
 import React from 'react';
+import { ConnectionHandler } from '../connection-handler';
 
-import { Device } from '../../api';
-import { DeviceManager } from '../device-manager';
+import { useAppDispatch, useAppSelector } from '../hooks';
+import { setSelectedDevice } from '../store/device';
 
-interface DeviceManagerProps {
-    onDeviceChange?: (device: Device) => any;
-}
+export function DeviceSelect(): JSX.Element {
 
-interface DeviceManagerState {
-    loading: boolean;
-    devices: Device[];
-    selected?: string;
-}
+    const dispatch = useAppDispatch();
+    const devices = useAppSelector(state => state.device.devices);
+    const options = devices.filter(device => device.path);
 
-export class DeviceSelect extends React.Component<DeviceManagerProps, DeviceManagerState> {
-    constructor(props) {
-        super(props);
+    return (
+        <section>
+            <div className="form-row">
+                <FormField htmlFor="devices" label="Devices" className="flex-auto">
+                    <Select
+                        options={options}
+                        children={(device) => `${device.vendorId} ${device.productId} $({device.path})`}
+                        onChange={e => dispatch(setSelectedDevice(e.value))}
+                        placeholder="Select Device"
+                        id="devices"
+                        clear
+                    />
+                </FormField>
 
-        this.state = {
-            loading: false,
-            devices: [],
-            selected: null,
-        };
-    }
-
-    componentDidMount(): void {
-        this.setState({
-            loading: true,
-        });
-
-        DeviceManager.addMesssageHandler(msg => {
-            switch (msg.type) {
-                case 'list':
-                    const deviceLost =
-                        this.state.selected != null &&
-                        msg.devices.filter(d => d.path === this.state.selected).length === 0;
-
-                    this.setState({
-                        loading: false,
-                        devices: msg.devices,
-                        selected: deviceLost ? null : this.state.selected,
-                    });
-                    break;
-            }
-        });
-
-        DeviceManager.refresh()
-            .then(() => DeviceManager.listDevices())
-            .then(devices => {
-                this.setState({
-                    devices,
-                });
-            });
-    }
-
-    selectDevice(event) {
-        const device = event.value;
-
-        DeviceManager.selectDevice(device).then(() => {
-            this.setState({
-                selected: device,
-            });
-            if (typeof this.props.onDeviceChange === 'function') {
-                this.props.onDeviceChange(device);
-            }
-        });
-    }
-
-    render(): React.ReactNode {
-        const options = this.state.devices
-            .filter(device => device.path);
-
-        return (
-            <section>
-                <Select
-                    options={options}
-                    children={(device) => `${device.vendorId} ${device.productId} $({device.path})`}
-                    onChange={e => this.selectDevice(e)}
-                />
-            </section>
-        );
-    }
+                <div className="my-auto ml-8">
+                    <Button
+                        icon={<Refresh></Refresh>}
+                        primary
+                        label="Reload"
+                        onClick={() => ConnectionHandler.listDevices()}
+                    />
+                </div>
+            </div>
+        </section>
+    );
 }

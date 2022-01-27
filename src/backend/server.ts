@@ -1,8 +1,8 @@
-import SerialPort from 'serialport';
 import fastify from 'fastify';
 import fastifyWs from 'fastify-websocket';
+import SerialPort from 'serialport';
 
-import { Message } from '../api';
+import { Message, MessageType, Response } from '../api';
 
 const app = fastify({ logger: { prettyPrint: true } });
 
@@ -11,39 +11,39 @@ app.register(fastifyWs);
 app.get('/', { websocket: true }, (wsConn, req) => {
 
     let serialConn: SerialPort | null = null;
-    let devices: SerialPort.PortInfo[] = [];
 
     function respond(message: Message, successful: boolean = true, data: Partial<Message> = {}) {
         send({
             ...data,
-            type: 'confirmation',
+            type: MessageType.CONFIRMATION,
             confirmationType: message.type,
             confirmationSuccess: successful,
         });
     }
 
-    function send(message: Message) {
+    function send(message: Response) {
         wsConn.socket.send(JSON.stringify(message));
+    }
+
+    function serialDisconnect() {
+        send({ type: MessageType.DEVICE_DISCONNECT });
+        serialConn = null;
     }
 
     wsConn.socket.on('message', async rawData => {
         try {
             const msg: Message = JSON.parse(rawData.toString());
             switch (msg.type) {
-                case 'refresh':
-                    devices = await SerialPort.list();
-                    respond(msg);
-                    break;
-
-                case 'list':
+                case MessageType.LIST_DEVICES:
                     respond(msg, true, {
-                        devices,
+                        devices: await SerialPort.list()
                     });
                     break;
 
-                case 'select':
+                case MessageType.SELECT_DEVICE:
                     if (!msg.devicePath) {
                         if (serialConn != null) {
+                            serialConn.off('close', serialDisconnect);
                             serialConn.close();
                         }
                         serialConn = null;
@@ -53,12 +53,16 @@ app.get('/', { websocket: true }, (wsConn, req) => {
 
                     try {
                         serialConn = new SerialPort(msg.devicePath, { baudRate: 9600 });
+
                         serialConn.on('data', data => {
                             wsConn.socket.send(JSON.stringify({
                                 type: 'trace',
                                 data: data.toString()
                             }));
                         });
+
+                        serialConn.on('close', serialDisconnect);
+
                         respond(msg);
                     } catch (err) {
                         console.error(err);

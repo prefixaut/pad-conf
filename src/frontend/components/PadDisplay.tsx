@@ -1,13 +1,13 @@
 import React from 'react';
 
 import { PadType } from '../../api';
-import { PanelSettings } from '../common';
+import { Panel } from '../common';
 
 interface PadDisplayProps {
     type: PadType;
-    panels: PanelSettings[];
+    panels: Panel[];
     selectedPanel: number;
-    onPanelSelect?: (index: number, panel: PanelSettings) => any;
+    onPanelSelect?: (index: number, panel: Panel) => any;
 }
 
 export function PadDisplay(props: PadDisplayProps): JSX.Element {

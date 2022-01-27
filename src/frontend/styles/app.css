@@ -12,7 +12,7 @@
 
         .app-body {
             color: white;
-            padding: 6rem 2rem 6rem;
+            padding: 6rem 0;
             width: 100%;
             background-color: #0e1a25;
             flex: 1 1 auto;
