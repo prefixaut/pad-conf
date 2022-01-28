@@ -81,4 +81,4 @@ export interface Device {
     vendorId?: string | undefined;
 }
 
-export type PadType = 'ddr' | 'pump' | 'dance';
+export type PadType = 'ddr' | 'pump' | 'solo' | '';

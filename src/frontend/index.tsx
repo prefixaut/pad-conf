@@ -9,7 +9,7 @@ import { App } from './components/App';
 import { ConnectionHandler } from './connection-handler';
 import { store } from './store';
 import { disconnectFromBackend } from './store/backend';
-import { setDevices, setSelectedDevice } from './store/device';
+import { devices, selectDevice } from './store/device';
 import { openToast } from './store/toast';
 
 ReactDOM.render(
@@ -23,8 +23,8 @@ ReactDOM.render(
 
 ConnectionHandler.addCloseHandler(manual => {
     store.dispatch(disconnectFromBackend());
-    store.dispatch(setSelectedDevice(null));
-    store.dispatch(setDevices([]));
+    store.dispatch(selectDevice(null));
+    store.dispatch(devices([]));
 
     if (!manual) {
         store.dispatch(openToast({
@@ -40,7 +40,7 @@ ConnectionHandler.addMesssageHandler(message => {
         case MessageType.CONFIRMATION:
             switch (message.confirmationType) {
                 case MessageType.LIST_DEVICES:
-                    store.dispatch(setDevices((message as ListDevicesResponse).devices));
+                    store.dispatch(devices((message as ListDevicesResponse).devices));
                     break;
             }
             break;
@@ -48,8 +48,8 @@ ConnectionHandler.addMesssageHandler(message => {
         case MessageType.DEVICE_DISCONNECT:
             // Request a new list of devices to remove the currently removed one
             ConnectionHandler.listDevices()
-                .then(devices => store.dispatch(setDevices(devices)));
-            store.dispatch(setSelectedDevice(null));
+                .then(loadedDevices => store.dispatch(devices(loadedDevices)));
+            store.dispatch(selectDevice(null));
             store.dispatch(openToast({
                 title: 'Device disconnected!',
                 message: 'The device has unexpectedly disconnected!',

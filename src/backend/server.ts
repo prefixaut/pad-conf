@@ -11,6 +11,7 @@ app.register(fastifyWs);
 app.get('/', { websocket: true }, (wsConn, req) => {
 
     let serialConn: SerialPort | null = null;
+    let currentDevice: string;
 
     function respond(message: Message, successful: boolean = true, data: Partial<Message> = {}) {
         send({
@@ -41,18 +42,34 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                     break;
 
                 case MessageType.SELECT_DEVICE:
-                    if (!msg.devicePath) {
-                        if (serialConn != null) {
-                            serialConn.off('close', serialDisconnect);
-                            serialConn.close();
+                    if (msg.devicePath !== currentDevice) {
+                        try {
+                            if (serialConn != null) {
+                                serialConn.off('close', serialDisconnect);
+                                await new Promise<void>((resolve, reject) => serialConn.close(err => {
+                                    if (err) {
+                                        reject(err);
+                                    } else {
+                                        resolve();
+                                    }
+                                }));
+                            }
+                        } catch (err) {
+                            respond(msg, false);
+                            break;
                         }
+
                         serialConn = null;
+                    }
+
+                    if (msg.devicePath == null) {
                         respond(msg);
                         break;
                     }
 
                     try {
                         serialConn = new SerialPort(msg.devicePath, { baudRate: 9600 });
+                        currentDevice = msg.devicePath;
 
                         serialConn.on('data', data => {
                             wsConn.socket.send(JSON.stringify({
@@ -61,9 +78,16 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                             }));
                         });
 
+                        serialConn.on('open', () => {
+                            respond(msg);
+                        });
+
+                        serialConn.on('error', err => {
+                            console.error(err);
+                        });
+
                         serialConn.on('close', serialDisconnect);
 
-                        respond(msg);
                     } catch (err) {
                         console.error(err);
                         respond(msg, false);

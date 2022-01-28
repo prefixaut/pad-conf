@@ -4,6 +4,7 @@ import { Device } from '../../api';
 import { Panel } from '../common';
 
 interface DeviceStore {
+    loading: boolean;
     devices: Device[];
     selectedDevice?: Device;
     panels: Panel[];
@@ -11,6 +12,7 @@ interface DeviceStore {
 }
 
 const initialState: DeviceStore = {
+    loading: false,
     devices: [],
     selectedDevice: null,
     panels: [],
@@ -21,20 +23,20 @@ export const deviceSlice = createSlice({
     name: 'device',
     initialState,
     reducers: {
-        setDevices(state, action: PayloadAction<Device[]>) {
+        devices(state, action: PayloadAction<Device[]>) {
             state.devices = action.payload;
         },
-        setSelectedDevice(state, action: PayloadAction<Device>) {
+        selectDevice(state, action: PayloadAction<Device>) {
             state.selectedDevice = action.payload;
         },
-        setPanels(state, action: PayloadAction<Panel[]>) {
+        panels(state, action: PayloadAction<Panel[]>) {
             state.panels = action.payload;
         },
-        setSelectedPanel(state, action: PayloadAction<number>) {
+        selectPanel(state, action: PayloadAction<number>) {
             state.selectedPanel = action.payload;
         },
     }
 });
 
-export const { setDevices, setSelectedDevice, setPanels, setSelectedPanel } = deviceSlice.actions;
+export const { devices, selectDevice, panels, selectPanel } = deviceSlice.actions;
 export default deviceSlice.reducer;

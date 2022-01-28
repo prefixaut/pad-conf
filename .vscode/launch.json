@@ -6,7 +6,7 @@
     "configurations": [
         {
             "name": "Debug Backend",
-            "type": "pwa-node",
+            "type": "node",
             "request": "launch",
             "runtimeArgs": ["--nolazy", "-r", "ts-node/register/transpile-only"],
             "program": "${workspaceFolder}/src/backend/server.ts",

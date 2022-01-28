@@ -2,18 +2,18 @@ import { Middleware } from 'redux';
 
 import { ConnectionHandler } from './connection-handler';
 import { disconnectFromBackend, setConnectedToBackend } from './store/backend';
-import { setDevices, setSelectedDevice } from './store/device';
+import { devices } from './store/device';
 import { RootState } from './store/root';
-import { openToast } from './store/toast';
+import { closeToast, openToast } from './store/toast';
 
 export const connectionHandlerMiddleware: Middleware<{}, RootState> = storeApi => next => action => {
     switch (action.type) {
         case 'backend/connect':
             ConnectionHandler.connect(action.payload)
                 .then(() => ConnectionHandler.listDevices())
-                .then(devices => {
+                .then(loadedDevices => {
                     storeApi.dispatch(setConnectedToBackend());
-                    storeApi.dispatch(setDevices(devices));
+                    storeApi.dispatch(devices(loadedDevices));
                 })
                 .catch(error => {
                     console.log(error);
@@ -25,6 +25,24 @@ export const connectionHandlerMiddleware: Middleware<{}, RootState> = storeApi =
 
                     storeApi.dispatch(disconnectFromBackend());
                 });
+            break;
+        
+        case 'device/selectDevice':
+            ConnectionHandler.selectDevice(action.payload?.path);
+            break;
+    }
+
+    return next(action);
+};
+
+export const utilMiddleware: Middleware<{}, RootState> = storeApi => next => action => {
+    switch (action.type) {
+        case 'toast/open':
+            if (action.payload.expire > 0) {
+                setTimeout(() => {
+                    storeApi.dispatch(closeToast(action.payload));
+                }, action.payload.expire);
+            }
             break;
     }
 

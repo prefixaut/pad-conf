@@ -1,10 +1,10 @@
 import { Button, FormField, Select } from 'grommet';
 import { Refresh } from 'grommet-icons';
 import React from 'react';
-import { ConnectionHandler } from '../connection-handler';
 
+import { ConnectionHandler } from '../connection-handler';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { setSelectedDevice } from '../store/device';
+import { selectDevice } from '../store/device';
 
 export function DeviceSelect(): JSX.Element {
 
@@ -19,7 +19,7 @@ export function DeviceSelect(): JSX.Element {
                     <Select
                         options={options}
                         children={(device) => `${device.vendorId} ${device.productId} $({device.path})`}
-                        onChange={e => dispatch(setSelectedDevice(e.value))}
+                        onChange={event => dispatch(selectDevice(event.value))}
                         placeholder="Select Device"
                         id="devices"
                         clear
