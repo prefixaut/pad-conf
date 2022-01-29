@@ -1,10 +1,10 @@
 import { Button, Form, FormField, Spinner, TextInput } from 'grommet';
 import { Close, Connect } from 'grommet-icons';
 import React from 'react';
-import { ConnectionHandler } from '../connection-handler';
 
+import { ConnectionHandler } from '../connection-handler';
 import { useAppDispatch, useAppSelector } from '../hooks';
-import { connectToBackend, disconnectFromBackend } from '../store/backend';
+import { connectToBackend } from '../store/backend';
 
 export function ServerSelect(): JSX.Element {
 

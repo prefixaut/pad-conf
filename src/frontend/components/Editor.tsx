@@ -1,47 +1,21 @@
 import React from 'react';
+import { useAppSelector } from '../hooks';
 
-import { Panel } from '../common';
 import { PadDisplay } from './PadDisplay';
 
-interface EditorProps {}
+export function Editor(): JSX.Element {
+    const { loading } = useAppSelector(state => state.device);
 
-interface EditorState {
-    panels: Panel[];
-    selectedPanel: number;
+    return (
+        <section className="editor container">
+            <main className="editor-content">
+
+            </main>
+
+            <aside className="input-display">
+                {!loading && <PadDisplay />}
+            </aside>
+        </section>
+    );
 }
 
-export class Editor extends React.Component<EditorProps, EditorState> {
-    constructor(props) {
-        super(props);
-
-        this.state = {
-            panels: [],
-            selectedPanel: null,
-        };
-    }
-
-    selectPanelIndex(index: number) {
-        this.setState({
-            selectedPanel: index,
-        });
-    }
-
-    render(): React.ReactNode {
-        return (
-            <section className="editor container">
-                <main className="editor-content">
-
-                </main>
-
-                <aside className="input-display">
-                    <PadDisplay
-                        type="ddr"
-                        panels={this.state.panels}
-                        selectedPanel={this.state.selectedPanel}
-                        onPanelSelect={(index) => this.selectPanelIndex(index)}
-                    ></PadDisplay>
-                </aside>
-            </section>
-        );
-    }
-}

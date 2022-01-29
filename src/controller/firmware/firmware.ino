@@ -135,12 +135,14 @@ void handleMessage(char *message) {
       break;
     }
 
+    // Count
     case 'c': {
       Serial.print("c ");
       Serial.println(PANEL_COUNT);
       break;
     }
 
+    // Layout
     case 'l': {
       Serial.print("l ");
 
@@ -248,7 +250,7 @@ void loop() {
     }
 
     if (enable_mesassure && meassure_counter % 250) {
-      Serial.print('m');
+      Serial.print('v');
       Serial.print(' ');
       Serial.print(i);
       Serial.print(' ');

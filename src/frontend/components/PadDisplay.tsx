@@ -1,84 +1,65 @@
 import React from 'react';
 
-import { PadType } from '../../api';
-import { Panel } from '../common';
+import { useAppDispatch, useAppSelector } from '../hooks';
+import { selectPanel } from '../store/device';
 
-interface PadDisplayProps {
-    type: PadType;
-    panels: Panel[];
-    selectedPanel: number;
-    onPanelSelect?: (index: number, panel: Panel) => any;
-}
+export function PadDisplay(): JSX.Element {
+    const { layout, selectedPanel } = useAppSelector(state => state.device);
 
-export function PadDisplay(props: PadDisplayProps): JSX.Element {
-    switch (props.type) {
-        case 'ddr':
-            return (
-                <div className="pad-display ddr">
-                    <div className="panel"></div>
-                    {renderPanel(0, '↑', props)}
-                    <div className="panel"></div>
-                    {renderPanel(1, '←', props)}
-                    <div className="panel"></div>
-                    {renderPanel(2, '→', props)}
-                    <div className="panel"></div>
-                    {renderPanel(3, '↓', props)}
-                    <div className="panel"></div>
-                </div>
-            );
-
-        case 'pump':
-            return (
-                <div className="pad-display pump">
-                    {renderPanel(0, '↖', props)}
-                    <div className="panel"></div>
-                    {renderPanel(1, '↗', props)}
-                    <div className="panel"></div>
-                    {renderPanel(2, '■', props)}
-                    <div className="panel"></div>
-                    {renderPanel(3, '↙', props)}
-                    <div className="panel"></div>
-                    {renderPanel(4, '↘', props)}
-                </div>
-            );
-
-        case 'dance':
-            return (
-                <div className="pad-display dance">
-                    {renderPanel(0, '↖', props)}
-                    {renderPanel(1, '↑', props)}
-                    {renderPanel(2, '↗', props)}
-                    {renderPanel(3, '←', props)}
-                    <div className="panel"></div>
-                    {renderPanel(4, '→', props)}
-                    <div className="panel"></div>
-                    {renderPanel(5, '↓', props)}
-                    <div className="panel"></div>
-                </div>
-            );
-
-        default:
-            return <div>Invalid PAD type "{props.type}" provided!</div>;
-    }
-}
-
-function renderPanel(index: number, text: string, props: PadDisplayProps): React.ReactNode {
-    const classes = ['btn'];
-    if (props.selectedPanel === index) {
-        classes.push('active');
-    }
-
-    function callPanelSelect() {
-        if (typeof props.onPanelSelect === 'function') {
-            props.onPanelSelect(index, props.panels[index]);
+    let index = 0;
+    const renderedPanels = layout.map((enabled, position) => {
+        let out: any = (<div className="panel"></div>);
+        if (enabled) {
+            out = renderPanel(index, selectedPanel, getCharForPosition(position));
+            index++;
         }
+
+        return out;
+    });
+
+    return (
+        <div className="pad-display">
+            {renderedPanels}
+        </div>
+    );
+}
+
+function renderPanel(index: number, selectedPanel: number, text: string): React.ReactNode {
+    const dispatch = useAppDispatch();
+    const classes = ['btn'];
+
+    if (selectedPanel === index) {
+        classes.push('active');
     }
 
     return (
         <div className="panel input">
-            <button className={classes.join(' ')} onClick={() => callPanelSelect()}>
+            <button className={classes.join(' ')} onClick={() => dispatch(selectPanel(index))}>
                 <code>{text}</code>
             </button>
         </div>
     );
+}
+
+function getCharForPosition(position: number) {
+    switch (position) {
+        case 0:
+            return '↖';
+        case 1:
+            return'↑';
+        case 2:
+            return'↗';
+        case 3:
+            return '←';
+        case 4:
+            return '■';
+        case 5:
+            return '→';
+        case 6:
+            return '↙';
+        case 7:
+            return '↓';
+        case 8:
+            return '↘';
+    }
 }

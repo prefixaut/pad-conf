@@ -2,7 +2,9 @@ import fastify from 'fastify';
 import fastifyWs from 'fastify-websocket';
 import SerialPort from 'serialport';
 
-import { Message, MessageType, Response } from '../api';
+import { Message, MessageType, Request, Response, SelectDeviceResponse } from '../api';
+import { Command } from '../common';
+import { BoardConnection } from './board-connection';
 
 const app = fastify({ logger: { prettyPrint: true } });
 
@@ -11,6 +13,7 @@ app.register(fastifyWs);
 app.get('/', { websocket: true }, (wsConn, req) => {
 
     let serialConn: SerialPort | null = null;
+    let board: BoardConnection | null = null;
     let currentDevice: string;
 
     function respond(message: Message, successful: boolean = true, data: Partial<Message> = {}) {
@@ -26,77 +29,125 @@ app.get('/', { websocket: true }, (wsConn, req) => {
         wsConn.socket.send(JSON.stringify(message));
     }
 
-    function serialDisconnect() {
-        send({ type: MessageType.DEVICE_DISCONNECT });
+    function serialDisconnect(silent: boolean = false) {
+        console.log('Device disconnected!');
+        if (!silent) {
+            send({ type: MessageType.DEVICE_DISCONNECT });
+        }
         serialConn = null;
+        board = null;
     }
 
-    wsConn.socket.on('message', async rawData => {
-        try {
-            const msg: Message = JSON.parse(rawData.toString());
-            switch (msg.type) {
-                case MessageType.LIST_DEVICES:
-                    respond(msg, true, {
-                        devices: await SerialPort.list()
-                    });
-                    break;
+    async function handleIncomingMessage(msg: Request) {
+        switch (msg.type) {
+            case MessageType.LIST_DEVICES:
+                respond(msg, true, {
+                    devices: await SerialPort.list()
+                });
+                break;
 
-                case MessageType.SELECT_DEVICE:
-                    if (msg.devicePath !== currentDevice) {
-                        try {
-                            if (serialConn != null) {
-                                serialConn.off('close', serialDisconnect);
-                                await new Promise<void>((resolve, reject) => serialConn.close(err => {
-                                    if (err) {
-                                        reject(err);
-                                    } else {
-                                        resolve();
-                                    }
-                                }));
-                            }
-                        } catch (err) {
-                            respond(msg, false);
-                            break;
+            case MessageType.SELECT_DEVICE:
+                if (msg.devicePath !== currentDevice) {
+                    try {
+                        if (serialConn != null) {
+                            serialConn.off('close', serialDisconnect);
+                            await new Promise<void>((resolve, reject) => serialConn.close(err => {
+                                if (err) {
+                                    reject(err);
+                                } else {
+                                    resolve();
+                                }
+                            }));
                         }
-
-                        serialConn = null;
-                    }
-
-                    if (msg.devicePath == null) {
-                        respond(msg);
+                    } catch (err) {
+                        respond(msg, false);
                         break;
                     }
 
-                    try {
-                        serialConn = new SerialPort(msg.devicePath, { baudRate: 9600 });
-                        currentDevice = msg.devicePath;
+                    serialConn = null;
+                    board = null;
+                }
 
-                        serialConn.on('data', data => {
+                if (msg.devicePath == null) {
+                    respond(msg);
+                    break;
+                }
+
+                try {
+                    serialConn = new SerialPort(msg.devicePath, { baudRate: 9600 });
+                    board = new BoardConnection(serialConn);
+                    currentDevice = msg.devicePath;
+
+                    serialConn.on('data', data => {
+                        const msg = data.toString();
+                        if (msg.startsWith(Command.MEASSURE_VALUE)) {
+                            const [index, value] = msg.substring(2).split(' ');
+
+                            send({
+                                type: MessageType.MEASSUREMENT,
+                                meassurePanelIndex: parseInt(index, 10),
+                                meassureValue: parseInt(value, 10),
+                            });
+                        } else {
                             wsConn.socket.send(JSON.stringify({
                                 type: 'trace',
-                                data: data.toString()
+                                data: msg,
                             }));
-                        });
+                        }
+                    });
 
-                        serialConn.on('open', () => {
-                            respond(msg);
-                        });
+                    serialConn.on('open', async () => {
+                        try {
+                            const [panels, layout] = await Promise.all([
+                                board.getPanels(),
+                                board.getPadLayout()
+                            ]);
 
-                        serialConn.on('error', err => {
-                            console.error(err);
-                        });
+                            const res: SelectDeviceResponse = {
+                                type: MessageType.CONFIRMATION,
+                                confirmationType: MessageType.SELECT_DEVICE,
+                                confirmationSuccess: true,
+                                panels,
+                                panelCount: panels.length,
+                                layout,
+                            };
 
-                        serialConn.on('close', serialDisconnect);
+                            send(res);
+                        } catch (err) {
+                            serialDisconnect(true);
+                            respond(msg, false);
+                        }
+                    });
 
-                    } catch (err) {
-                        console.error(err);
-                        respond(msg, false);
-                    }
+                    serialConn.on('error', err => {
+                        console.error('Unknown error from device!', err);
+                    });
 
+                    serialConn.on('close', serialDisconnect);
+
+                } catch (err) {
+                    console.error(err);
+                    respond(msg, false);
+                }
+
+                break;
+            
+            case MessageType.MEASSUREMENT:
+                if (board == null) {
+                    respond(msg, false);
                     break;
-            }
-        } catch (e) {
+                }
 
+                respond(msg, await board.setMeassurement(msg.meassureEnable));
+                break;
+        }
+    }
+
+    wsConn.socket.on('message', rawData => {
+        try {
+            handleIncomingMessage(JSON.parse(rawData.toString()));
+        } catch (e) {
+            console.log(e);
         }
     });
 

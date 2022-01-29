@@ -1,4 +1,4 @@
-import { Device, ListDevicesResponse, Message, MessageType, Response } from '../api';
+import { Device, ListDevicesResponse, Message, MessageType, Response, SelectDeviceResponse } from '../api';
 
 export type ResponseHandler = (msg: Response) => any | Promise<any>;
 export type CloseHandler = (manual: boolean) => any;
@@ -135,10 +135,10 @@ export class ConnectionHandler {
         }).then((msg: ListDevicesResponse) => msg.devices);
     }
 
-    static selectDevice(device: string) {
+    static selectDevice(device: string): Promise<SelectDeviceResponse> {
         return ConnectionHandler.send({
             type: MessageType.SELECT_DEVICE,
             devicePath: device,
-        });
+        }) as Promise<SelectDeviceResponse>;
     }
 }

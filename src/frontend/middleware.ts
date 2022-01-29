@@ -2,7 +2,7 @@ import { Middleware } from 'redux';
 
 import { ConnectionHandler } from './connection-handler';
 import { disconnectFromBackend, setConnectedToBackend } from './store/backend';
-import { devices } from './store/device';
+import { devices, deviceSelected } from './store/device';
 import { RootState } from './store/root';
 import { closeToast, openToast } from './store/toast';
 
@@ -28,7 +28,9 @@ export const connectionHandlerMiddleware: Middleware<{}, RootState> = storeApi =
             break;
         
         case 'device/selectDevice':
-            ConnectionHandler.selectDevice(action.payload?.path);
+            ConnectionHandler.selectDevice(action.payload?.path).then(res => {
+                storeApi.dispatch(deviceSelected({ layout: res.layout, panels: res.panels }));
+            });
             break;
     }
 

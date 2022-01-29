@@ -1,3 +1,5 @@
+import { PadLayout, Panel } from './common';
+
 export enum MessageType {
     /** Response Message-Type the server sends back when it has successfully processed the initial request */
     CONFIRMATION = 'confirmation',
@@ -18,10 +20,18 @@ export type Message =
     | MeassurementMessage
     ;
 
+export type Request =
+    | ListDevicesRequest
+    | SelectDeviceRequest
+    | MeassurementRequest
+    ;
+
 export type Response =
     | ConfirmationBaseMessage
     | ListDevicesResponse
     | SimpleResponse
+    | MeassurementResponse
+    | SelectDeviceResponse
     ;
 
 export interface BaseMessage {
@@ -56,6 +66,13 @@ export interface SelectDeviceRequest extends BaseMessage {
     devicePath: string;
 }
 
+export interface SelectDeviceResponse extends ConfirmationBaseMessage {
+    confirmationType: MessageType.SELECT_DEVICE;
+    panels: Panel[];
+    panelCount: number;
+    layout: PadLayout;
+}
+
 export type MeassurementMessage = MeassurementRequest | MeassurementResponse;
 
 export interface MeassurementBaseMessage extends BaseMessage {
@@ -68,7 +85,7 @@ export interface MeassurementRequest extends MeassurementBaseMessage {
 
 export interface MeassurementResponse extends MeassurementBaseMessage {
     meassureValue: number;
-    meassurePanelPin: number;
+    meassurePanelIndex: number;
 }
 
 export interface Device {
@@ -80,5 +97,3 @@ export interface Device {
     productId?: string | undefined;
     vendorId?: string | undefined;
 }
-
-export type PadType = 'ddr' | 'pump' | 'solo' | '';
