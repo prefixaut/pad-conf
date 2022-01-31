@@ -1,10 +1,13 @@
 export interface Panel {
-    pin: number;
-    baseValue: number;
-    positiveThreshold: number;
-    negativeThreshold: number;
+    deadzoneStart: number;
+    deadzoneEnd: number;
     keyCode: number;
 }
+
+export const PIN_UNASSIGNED = -1;
+export const KEY_CODE_UNASSIGNED = -1;
+export const MIN_VALUE = 0;
+export const MAX_VALUE = 1024;
 
 export enum Command {
     DEBUG = 'd',
@@ -24,3 +27,13 @@ export type PadLayout = [
     boolean, boolean, boolean,
     boolean, boolean, boolean,
 ];
+
+export interface Device {
+    path: string;
+    manufacturer?: string | undefined;
+    serialNumber?: string | undefined;
+    pnpId?: string | undefined;
+    locationId?: string | undefined;
+    productId?: string | undefined;
+    vendorId?: string | undefined;
+}

@@ -1,7 +1,7 @@
 import { Grommet, Header, Heading } from 'grommet';
 import React from 'react';
 
-import { Device } from '../../api';
+import { Device } from '../../common';
 import { useAppSelector } from '../hooks';
 import { DeviceSelect } from './DeviceSelect';
 import { Editor } from './Editor';

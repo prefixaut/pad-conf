@@ -1,7 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { Device } from '../../api';
-import { PadLayout, Panel } from "../../common";
+import { Device, PadLayout, Panel } from '../../common';
 
 interface DeviceStore {
     loading: boolean;
@@ -39,6 +38,9 @@ export const deviceSlice = createSlice({
         panels(state, action: PayloadAction<Panel[]>) {
             state.panels = action.payload;
         },
+        updatePanel(state, action: PayloadAction<{ index: number, settings: Panel }>) {
+            state.panels[action.payload.index] = action.payload.settings;
+        },
         selectPanel(state, action: PayloadAction<number>) {
             state.selectedPanel = action.payload;
         },
@@ -48,5 +50,5 @@ export const deviceSlice = createSlice({
     }
 });
 
-export const { devices, selectDevice, deviceSelected, panels, selectPanel } = deviceSlice.actions;
+export const { devices, selectDevice, deviceSelected, panels, updatePanel, selectPanel } = deviceSlice.actions;
 export default deviceSlice.reducer;

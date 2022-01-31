@@ -20,7 +20,7 @@ app.get('/', { websocket: true }, (wsConn, req) => {
         send({
             ...data,
             type: MessageType.CONFIRMATION,
-            confirmationType: message.type,
+            confirmationType: message.type as any,
             confirmationSuccess: successful,
         });
     }
@@ -131,7 +131,7 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                 }
 
                 break;
-            
+
             case MessageType.MEASSUREMENT:
                 if (board == null) {
                     respond(msg, false);
@@ -139,6 +139,81 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                 }
 
                 respond(msg, await board.setMeassurement(msg.meassureEnable));
+                break;
+
+            case MessageType.GET_PANEL:
+                if (board == null) {
+                    respond(msg, false);
+                    break;
+                }
+
+                try {
+                    const settings = await board.getPanel(msg.panelIndex);
+                    respond(msg, true, {
+                        panelIndex: msg.panelIndex,
+                        settings,
+                    });
+                } catch (err) {
+                    respond(msg, false);
+                }
+                break;
+
+            case MessageType.UPDATE_PANEL:
+                if (board == null) {
+                    respond(msg, false);
+                    break;
+                }
+
+                try {
+                    await board.writePanel(msg.panelIndex, msg.settings);
+                    respond(msg);
+                } catch (err) {
+                    respond(msg, false);
+                }
+                break;
+
+            case MessageType.RESET_SETTINGS:
+                if (board == null) {
+                    respond(msg, false);
+                    break;
+                }
+
+                try {
+                    await board.reset();
+                    respond(msg);
+                } catch (err) {
+                    respond(msg, false);
+                }
+                break;
+
+            case MessageType.RESET_SETTINGS:
+                if (board == null) {
+                    respond(msg, false);
+                    break;
+                }
+
+                try {
+                    await board.save();
+                    respond(msg);
+                } catch (err) {
+                    respond(msg, false);
+                }
+                break;
+
+            case MessageType.GET_LAYOUT:
+                if (board == null) {
+                    respond(msg, false);
+                    break;
+                }
+
+                try {
+                    const layout = await board.getPadLayout();
+                    respond(msg, true, {
+                        layout
+                    });
+                } catch (err) {
+                    respond(msg, false);
+                }
                 break;
         }
     }

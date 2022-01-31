@@ -84,13 +84,11 @@ export class BoardConnection {
 
                 return panels.map(panel => {
                     const [index, parts] = panel.split(':');
-                    const [pin, base, pos, neg, key] = parts.split(',');
+                    const [start, end, key] = parts.split(',');
 
                     return {
-                        pin: parseInt(pin, 10),
-                        baseValue: parseInt(base, 10),
-                        positiveThreshold: parseInt(pos, 10),
-                        negativeThreshold: parseInt(neg, 10),
+                        deadzoneStart: parseInt(start, 10),
+                        deadzoneEnd: parseInt(end, 10),
                         keyCode: parseInt(key, 10),
                     }
                 });
@@ -111,13 +109,11 @@ export class BoardConnection {
         const cmd = `${Command.GET} ${index}`;
         return this.sendAndWait(cmd, msg => msg.startsWith(cmd), timeout)
             .then(msg => {
-            const [pin, base, pos, neg, key] = msg.substring(cmd.length).split(' ');
+            const [start, end, key] = msg.substring(cmd.length).split(' ');
 
             return {
-                pin: parseInt(pin, 10),
-                baseValue: parseInt(base, 10),
-                positiveThreshold: parseInt(pos, 10),
-                negativeThreshold: parseInt(neg, 10),
+                deadzoneStart: parseInt(start, 10),
+                deadzoneEnd: parseInt(end, 10),
                 keyCode: parseInt(key, 10),
             }
         });
@@ -127,10 +123,8 @@ export class BoardConnection {
         const cmd = [
             Command.WRITE,
             index,
-            data.pin,
-            data.baseValue,
-            data.positiveThreshold,
-            data.negativeThreshold,
+            data.deadzoneStart,
+            data.deadzoneEnd,
             data.keyCode,
         ].join(' ');
 

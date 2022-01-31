@@ -35,12 +35,12 @@ ConnectionHandler.addCloseHandler(manual => {
     }
 });
 
-ConnectionHandler.addMesssageHandler(message => {
-    switch (message.type) {
+ConnectionHandler.addResponseHandler(response => {
+    switch (response.type) {
         case MessageType.CONFIRMATION:
-            switch (message.confirmationType) {
+            switch (response.confirmationType) {
                 case MessageType.LIST_DEVICES:
-                    store.dispatch(devices((message as ListDevicesResponse).devices));
+                    store.dispatch(devices((response as ListDevicesResponse).devices));
                     break;
             }
             break;

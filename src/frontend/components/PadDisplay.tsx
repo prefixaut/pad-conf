@@ -8,9 +8,9 @@ export function PadDisplay(): JSX.Element {
 
     let index = 0;
     const renderedPanels = layout.map((enabled, position) => {
-        let out: any = (<div className="panel"></div>);
+        let out: any = (<div className="panel" key={position}></div>);
         if (enabled) {
-            out = renderPanel(index, selectedPanel, getCharForPosition(position));
+            out = renderPanel(index, selectedPanel, position);
             index++;
         }
 
@@ -24,7 +24,7 @@ export function PadDisplay(): JSX.Element {
     );
 }
 
-function renderPanel(index: number, selectedPanel: number, text: string): React.ReactNode {
+function renderPanel(index: number, selectedPanel: number, position: number): React.ReactNode {
     const dispatch = useAppDispatch();
     const classes = ['btn'];
 
@@ -33,9 +33,9 @@ function renderPanel(index: number, selectedPanel: number, text: string): React.
     }
 
     return (
-        <div className="panel input">
+        <div className="panel input" key={position}>
             <button className={classes.join(' ')} onClick={() => dispatch(selectPanel(index))}>
-                <code>{text}</code>
+                <code>{getCharForPosition(position)}</code>
             </button>
         </div>
     );

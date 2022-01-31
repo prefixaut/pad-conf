@@ -1,7 +1,22 @@
-import { Device, ListDevicesResponse, Message, MessageType, Response, SelectDeviceResponse } from '../api';
+import {
+    ConfirmationBaseMessage,
+    GetPanelResponse,
+    ListDevicesResponse,
+    Message,
+    MessageType,
+    Response,
+    SelectDeviceResponse,
+    UpdatePanelResponse,
+} from '../api';
+import { Device, Panel } from '../common';
 
 export type ResponseHandler = (msg: Response) => any | Promise<any>;
 export type CloseHandler = (manual: boolean) => any;
+type ResponseFilter = (response: ConfirmationBaseMessage) => boolean;
+const defaultFilter: (msg: Message) => ResponseFilter =
+    (msg) =>
+        (response) => response.type === MessageType.CONFIRMATION
+            && response.confirmationType === msg.type;
 
 export class ConnectionHandler {
     private static socket: WebSocket;
@@ -11,13 +26,13 @@ export class ConnectionHandler {
 
     private constructor() { }
 
-    static addMesssageHandler(handler: ResponseHandler) {
+    static addResponseHandler(handler: ResponseHandler) {
         if (!ConnectionHandler.responseHandlers.includes(handler)) {
             ConnectionHandler.responseHandlers.push(handler);
         }
     }
 
-    static removeMesssageHandler(handler: ResponseHandler) {
+    static removeResponseHandler(handler: ResponseHandler) {
         const index = ConnectionHandler.responseHandlers.indexOf(handler);
         if (index !== -1) {
             ConnectionHandler.responseHandlers = [
@@ -99,14 +114,17 @@ export class ConnectionHandler {
         }
     }
 
-    static send(msg: Message): Promise<Message> {
+    static send(msg: Message, filter: ResponseFilter = null): Promise<Message> {
+        if (filter == null) {
+            filter = defaultFilter(msg);
+        }
         ConnectionHandler.socket.send(JSON.stringify(msg));
         return new Promise((resolve, reject) => {
             let finished = false;
             const listener = (event) => {
                 try {
-                    const res: Message = JSON.parse(event.data);
-                    if (res.type !== 'confirmation' || res.confirmationType !== msg.type) {
+                    const res: Response = JSON.parse(event.data);
+                    if (res.type !== MessageType.CONFIRMATION || !filter(res)) {
                         return;
                     }
 
@@ -140,5 +158,44 @@ export class ConnectionHandler {
             type: MessageType.SELECT_DEVICE,
             devicePath: device,
         }) as Promise<SelectDeviceResponse>;
+    }
+
+    static enableMeassurements(enabled: boolean): Promise<void> {
+        return ConnectionHandler.send({
+            type: MessageType.MEASSUREMENT,
+            meassureEnable: enabled,
+        }).then(() => {});
+    }
+
+    static getSinglePanel(index: number): Promise<Panel> {
+        return ConnectionHandler.send({
+            type: MessageType.GET_PANEL,
+            panelIndex: index,
+        }, res => res.confirmationType === MessageType.GET_PANEL
+            && (res as GetPanelResponse).panelIndex === index
+        )
+            .then((msg: GetPanelResponse) => msg.settings);
+    }
+
+    static updateSinglePanel(index: number, settings: Panel): Promise<void> {
+        return ConnectionHandler.send({
+            type: MessageType.UPDATE_PANEL,
+            panelIndex: index,
+            settings,
+        }, res => res.confirmationType === MessageType.GET_PANEL
+            && (res as UpdatePanelResponse).panelIndex === index
+        ).then(() => {});
+    }
+
+    static resetSettings(): Promise<void> {
+        return ConnectionHandler.send({
+            type: MessageType.RESET_SETTINGS,
+        }).then(() => {});
+    }
+
+    static saveSettings(): Promise<void> {
+        return ConnectionHandler.send({
+            type: MessageType.SAVE_SETTINGS,
+        }).then(() => {});
     }
 }

@@ -3,51 +3,40 @@
 
 #define PANEL_COUNT 4
 #define COMMAND_BUFFER_SIZE 64
+#define PIN_UNASSIGNED -1
+#define KEY_CODE_UNASSIGNED -1
 
 static_assert(PANEL_COUNT > 0 && PANEL_COUNT < 10, "Panel count has to be between 1 and 9!");
 
-class Panel {
-public:
-  long pin;
-  long base;
-  long positive;
-  long negative;
-  long key_code;
-
-  Panel(): pin(-1), base(512), positive(20), negative(20), key_code(0) {}
-};
-
+/*
+ * Your Pad configuration goes here
+ */
 const bool PAD_LAYOUT[] = {
   false, true, false,
   true, false, true,
   false, true, false,
 };
+const int PIN_LAYOUT[] = {
+  PIN_UNASSIGNED, 0, PIN_UNASSIGNED,
+  1, PIN_UNASSIGNED, 2,
+  PIN_UNASSIGNED, 3, PIN_UNASSIGNED,
+}
+
+class Panel {
+public:
+  long pin;
+  long deadzone_start;
+  long deadzone_end;
+  long key_code;
+
+  Panel(): pin(PIN_UNASSIGNED), deadzone_start(0), deadzone_end(0), key_code(KEY_CODE_UNASSIGNED) {}
+};
+
+/*
+ * State-Variables of the controller
+ */
 Panel panels[PANEL_COUNT];
 bool already_pressed[PANEL_COUNT];
-
-void setup() {
-  int read_counter = 0;
-
-  byte saved_count = EEPROM.read(read_counter);
-  read_counter += sizeof(saved_count);
-  
-  bool layout[9];
-  EEPROM.get(read_counter, layout);
-  read_counter += sizeof(layout);
-
-  bool same_layout = true;
-  for (int i = 0; i < 9; i++) {
-    same_layout &= (PAD_LAYOUT[i] == layout[i]);
-  }
-
-  // Load previously saved panels if the layout and panel count is correct
-  if (saved_count == PANEL_COUNT && same_layout) {
-    EEPROM.get(read_counter, panels);
-    read_counter += sizeof(layout);
-  }
-
-  Serial.begin(9600); // USB is always 12 or 480 Mbit/sec
-}
 
 int val;
 String serial_msg;
@@ -59,24 +48,78 @@ bool enable_mesassure = false;
 int debug_counter = 0;
 int meassure_counter = 0;
 
+/**
+ * @brief Setup-Function when the controller boots up.
+ * As soon as the controller starts, this function is invoked to perform
+ * a complete setup to make this device operable.
+ */
+void setup() {
+  // Counter to properly offset the memory in the EEPROM
+  int read_counter = 0;
+
+  // Read and compare the saved panel count
+  byte saved_count = EEPROM.read(read_counter);
+  read_counter += sizeof(saved_count);
+  
+  // Read and compare the saved pad-layout
+  bool layout[9];
+  EEPROM.get(read_counter, layout);
+  read_counter += sizeof(layout);
+
+  bool same_layout = true;
+  for (int i = 0; i < 9; i++) {
+    same_layout &= (PAD_LAYOUT[i] == layout[i]);
+  }
+
+  // Read and compare the saved pin-layout
+  int pins[9];
+  EEPROM.get(read_counter, pins);
+  read_counter += sizeof(pins);
+
+  bool same_pins = true;
+  for (int i = 0; i < 9; i++) {
+    same_pins &= (PIN_LAYOUT[i] == pins[i]);
+  }
+
+  // Load previously saved panels if the layout and panel count is correct
+  if (saved_count == PANEL_COUNT && same_layout && same_pins) {
+    EEPROM.get(read_counter, panels);
+    read_counter += sizeof(layout);
+  }
+
+  // USB is always 12 or 480 Mbit/sec
+  Serial.begin(9600);
+}
+
+/**
+ * @brief Utility function to print a panel to serial.
+ * 
+ * @param index Index of the panel to be printed
+ * @param grouped If this is part of a grouped message or not
+ */
 void printPanel(int index, bool grouped) {
   char separator = grouped ? ',' : ' ';
 
-  Serial.print(panels[index].pin);
+  Serial.print(panels[index].deadzone_start);
   Serial.print(separator);
-  Serial.print(panels[index].base);
-  Serial.print(separator);
-  Serial.print(panels[index].positive);
-  Serial.print(separator);
-  Serial.print(panels[index].negative);
+  Serial.print(panels[index].deadzone_end);
   Serial.print(separator);
   Serial.print(panels[index].key_code);
 }
 
+/**
+ * @brief Utility function to save the current state of the panels to the EEPROM.
+ * 
+ */
 void saveSettings() {
   // TODO: Save the settings to the EEPROM
 }
 
+/**
+ * @brief Utility function to handle all incoming messages and perform the tasks accordingly.
+ * 
+ * @param message The message received from the serial bus.
+ */
 void handleMessage(char *message) {
   char *command = strtok(serial_msg_char_buf, " ");
 
@@ -190,10 +233,8 @@ void handleMessage(char *message) {
         break;
       }
 
-      panels[index].pin = strtol(strtok(NULL, " "), NULL, 10);
-      panels[index].base = strtol(strtok(NULL, " "), NULL, 10);
-      panels[index].positive = strtol(strtok(NULL, " "), NULL, 10);
-      panels[index].negative = strtol(strtok(NULL, " "), NULL, 10);
+      panels[index].deadzone_start = strtol(strtok(NULL, " "), NULL, 10);
+      panels[index].deadzone_end = strtol(strtok(NULL, " "), NULL, 10);
 
       char *key = strtok(NULL, " ");
       if (key != NULL) {
@@ -231,15 +272,20 @@ void handleMessage(char *message) {
   }
 }
 
+/**
+ * @brief The controller loop which is executed continously.
+ * As soon as this function completes, the general teensy environment
+ * does it's job and executes this function again.
+ */
 void loop() {
-  for (int i = 0; i < PANEL_COUNT; i++) {
-    long pin = panels[i].pin;
+  for (int i = 0; i < PIN_LAYOUT; i++) {
+    long pin = PIN_LAYOUT[i];
     if (pin < 0) {
       continue;
     }
     val = analogRead(pin);
 
-    if (val <= panels[i].base - panels[i].negative || val >= panels[i].base + panels[i].positive) {
+    if (val < panels[i].deadzone_start && val > panels[i].deadzone_end) {
       if (!already_pressed[i]) {
         Keyboard.press(panels[i].key_code);
         already_pressed[i] = true;
@@ -279,5 +325,6 @@ void loop() {
     handleMessage(serial_msg_char_buf);
   }
   
+  // To not accidently overclock the USB cycles.
   delay(1);
 }
