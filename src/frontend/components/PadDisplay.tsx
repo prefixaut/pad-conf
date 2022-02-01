@@ -1,5 +1,6 @@
 import React from 'react';
 
+import { PIN_UNASSIGNED } from '../../common';
 import { useAppDispatch, useAppSelector } from '../hooks';
 import { selectPanel } from '../store/device';
 
@@ -7,9 +8,9 @@ export function PadDisplay(): JSX.Element {
     const { layout, selectedPanel } = useAppSelector(state => state.device);
 
     let index = 0;
-    const renderedPanels = layout.map((enabled, position) => {
+    const renderedPanels = layout.map((pin, position) => {
         let out: any = (<div className="panel" key={position}></div>);
-        if (enabled) {
+        if (pin !== PIN_UNASSIGNED) {
             out = renderPanel(index, selectedPanel, position);
             index++;
         }

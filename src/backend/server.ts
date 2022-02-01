@@ -68,7 +68,7 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                     board = null;
                 }
 
-                if (msg.devicePath == null) {
+                if (msg.devicePath == null || msg.devicePath === currentDevice) {
                     respond(msg);
                     break;
                 }
@@ -154,7 +154,10 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                         settings,
                     });
                 } catch (err) {
-                    respond(msg, false);
+                    respond(msg, false, {
+                        panelIndex: msg.panelIndex,
+                        settings: null,
+                    });
                 }
                 break;
 
@@ -166,9 +169,9 @@ app.get('/', { websocket: true }, (wsConn, req) => {
 
                 try {
                     await board.writePanel(msg.panelIndex, msg.settings);
-                    respond(msg);
+                    respond(msg, true, { panelIndex: msg.panelIndex });
                 } catch (err) {
-                    respond(msg, false);
+                    respond(msg, false, { panelIndex: msg.panelIndex });
                 }
                 break;
 

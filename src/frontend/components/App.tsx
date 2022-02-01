@@ -22,10 +22,7 @@ export function App(): JSX.Element {
                 <div className="container">
                     <ServerSelect />
 
-                    {connected && <>
-                        <hr className="my-8"/>
-                        {renderBody(device)}
-                    </>}
+                    {connected && renderBody(device)}
                 </div>
             </main>
 
@@ -38,7 +35,10 @@ function renderBody(device: Device): React.ReactNode {
     return (
         <>
             <DeviceSelect />
-            {device != null && <Editor></Editor>}
+            {device != null && <>
+                <hr className="my-8"/>
+                <Editor />
+            </>}
         </>
     );
 }

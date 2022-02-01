@@ -4,6 +4,7 @@ import { Device, PadLayout, Panel } from '../../common';
 
 interface DeviceStore {
     loading: boolean;
+    measurements: boolean;
     devices: Device[];
     selectedDevice?: Device;
     panels: Panel[];
@@ -13,6 +14,7 @@ interface DeviceStore {
 
 const initialState: DeviceStore = {
     loading: false,
+    measurements: false,
     devices: [],
     selectedDevice: null,
     panels: [],
@@ -35,6 +37,11 @@ export const deviceSlice = createSlice({
             state.panels = action.payload.panels;
             state.layout = action.payload.layout;
         },
+        mesasurements(state, action: PayloadAction<boolean>) {
+            if (action.payload != null) {
+                state.measurements = action.payload;
+            }
+        },
         panels(state, action: PayloadAction<Panel[]>) {
             state.panels = action.payload;
         },
@@ -50,5 +57,5 @@ export const deviceSlice = createSlice({
     }
 });
 
-export const { devices, selectDevice, deviceSelected, panels, updatePanel, selectPanel } = deviceSlice.actions;
+export const { devices, selectDevice, deviceSelected, mesasurements, panels, updatePanel, selectPanel } = deviceSlice.actions;
 export default deviceSlice.reducer;

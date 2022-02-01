@@ -5,6 +5,7 @@
         .editor-content {
             flex: 0 0 auto;
             width: 60%;
+            margin-top: 4rem;
         }
 
         .input-display {

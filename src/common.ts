@@ -23,9 +23,9 @@ export enum Command {
 }
 
 export type PadLayout = [
-    boolean, boolean, boolean,
-    boolean, boolean, boolean,
-    boolean, boolean, boolean,
+    number, number, number,
+    number, number, number,
+    number, number, number,
 ];
 
 export interface Device {

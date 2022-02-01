@@ -6,6 +6,7 @@ import { KEY_CODE_UNASSIGNED, MAX_VALUE, MIN_VALUE, Panel } from '../../common';
 import { ConnectionHandler } from '../connection-handler';
 import { store } from '../store';
 import { updatePanel } from '../store/device';
+import { openToast } from '../store/toast';
 
 interface PanelEditorProps {
     panelIndex: number;
@@ -38,6 +39,14 @@ export class PanelEditor extends React.Component<PanelEditorProps, PanelEditorSt
         });
     }
 
+    componentDidUpdate(prevProps: Readonly<PanelEditorProps>, prevState: Readonly<PanelEditorState>, snapshot?: any): void {
+        if (prevProps.panelIndex !== this.props.panelIndex) {
+            this.setState({
+                ...this.props.settings,
+            });
+        }
+    }
+
     componentWillUnmount(): void {
         ConnectionHandler.removeCloseHandler(this.closeHandler);
         ConnectionHandler.removeResponseHandler(this.messageHandler);
@@ -67,14 +76,30 @@ export class PanelEditor extends React.Component<PanelEditorProps, PanelEditorSt
             .then(() => store.dispatch(updatePanel({
                 index: this.props.panelIndex,
                 settings
-            })));
+            })))
+            .catch(err => {
+                console.error('Error while updating Panel', this.props, this.state, err);
+                store.dispatch(openToast({
+                    title: 'Could not update Panel!',
+                    message: 'Due to an error, the Panel could not be updated!',
+                    status: 'warning',
+                }));
+            });
+    }
+
+    savePad() {
+
+    }
+
+    updateDeadzone(event) {
+        this.setState({ deadzoneStart: event[0], deadzoneEnd: event[1] });
     }
 
     render(): React.ReactNode {
         const { deadzoneStart, deadzoneEnd, keyCode } = this.state;
 
         return (
-            <Form onSubmit={() => this.updatePanel()}>
+            <>
                 <FormField label="Deadzone" htmlFor="input-deadzone">
                     <Stack>
                         <Box direction="row" justify="between">
@@ -92,18 +117,23 @@ export class PanelEditor extends React.Component<PanelEditorProps, PanelEditorSt
                             min={MIN_VALUE}
                             max={MAX_VALUE}
                             values={[deadzoneStart, deadzoneEnd]}
-                            onChange={event => this.setState({ deadzoneStart: event[0], deadzoneEnd: event[1] })}
+                            onChange={event => this.updateDeadzone(event)}
                             id="input-deadzone"
                         />
+                        <div className="mt-4 select-none">
+                            <code className="text-center text-outline w-100 block">
+                                {deadzoneStart} - {deadzoneEnd}
+                            </code>
+                        </div>
                     </Stack>
-
-                    <Text style={{ fontFamily: 'monospace', textAlign: 'center' }}>
-                        {deadzoneStart} - {deadzoneEnd}
-                    </Text>
                 </FormField>
 
-                <Button type="submit" primary className="btn" label="Apply"></Button>
-            </Form>
+
+                <div className="btn-group mt-6">
+                    <Button primary className="btn" label="Apply" onClick={() => this.updatePanel()} />
+                    <Button primary className="btn btn-success" label="Save" onClick={() => this.savePad()} />
+                </div>
+            </>
         );
     }
 

@@ -14,6 +14,9 @@ export function Editor(): JSX.Element {
                     panelIndex={selectedPanel}
                     settings={panels[selectedPanel]}
                 />}
+                {selectedPanel == null && <>
+                    Please select a Panel first!
+                </>}
             </main>
 
             <aside className="input-display">

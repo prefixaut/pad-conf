@@ -17,7 +17,7 @@ export class BoardConnection {
             let resolved = false;
 
             const handler = (event: any) => {
-                const msg = event.toString();
+                const msg = event.toString().trim();
                 if (!filter(msg)) {
                     return;
                 }
@@ -83,8 +83,7 @@ export class BoardConnection {
                 const [count, ...panels] = msg.substring(2).split(' ');
 
                 return panels.map(panel => {
-                    const [index, parts] = panel.split(':');
-                    const [start, end, key] = parts.split(',');
+                    const [index, start, end, key] = panel.split(',');
 
                     return {
                         deadzoneStart: parseInt(start, 10),
@@ -102,7 +101,7 @@ export class BoardConnection {
 
     getPadLayout(timeout = this.timeout): Promise<PadLayout> {
         return this.sendAndWait(Command.LAYOUT, msg => msg.startsWith(Command.LAYOUT), timeout)
-            .then(msg => msg.substring(2).split('').map(v => v === '1') as PadLayout);
+            .then(msg => msg.substring(2).trim().split(' ').map(v => parseInt(v, 10)) as PadLayout);
     }
 
     getPanel(index: number, timeout = this.timeout): Promise<Panel> {

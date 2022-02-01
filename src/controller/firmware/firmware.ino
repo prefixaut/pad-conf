@@ -1,35 +1,32 @@
 #include <Arduino.h>
 #include <EEPROM.h>
 
-#define PANEL_COUNT 4
 #define COMMAND_BUFFER_SIZE 64
+#define MAX_PANEL_COUNT 9
 #define PIN_UNASSIGNED -1
 #define KEY_CODE_UNASSIGNED -1
-
-static_assert(PANEL_COUNT > 0 && PANEL_COUNT < 10, "Panel count has to be between 1 and 9!");
+#define DEBUG_COUNTER_LIMIT 250
+#define MEASSURE_COUNTER_LIMIT 250
 
 /*
+ * CONFIGURATION START
  * Your Pad configuration goes here
  */
-const bool PAD_LAYOUT[] = {
-  false, true, false,
-  true, false, true,
-  false, true, false,
+const int PANEL_COUNT = 4;
+const int PAD_LAYOUT[] = {
+  PIN_UNASSIGNED,     0,                PIN_UNASSIGNED,
+  1,                  PIN_UNASSIGNED,   2,
+  PIN_UNASSIGNED,     3,                PIN_UNASSIGNED,
 };
-const int PIN_LAYOUT[] = {
-  PIN_UNASSIGNED, 0, PIN_UNASSIGNED,
-  1, PIN_UNASSIGNED, 2,
-  PIN_UNASSIGNED, 3, PIN_UNASSIGNED,
-}
+/* CONFIGURATION END */
 
 class Panel {
 public:
-  long pin;
   long deadzone_start;
   long deadzone_end;
   long key_code;
 
-  Panel(): pin(PIN_UNASSIGNED), deadzone_start(0), deadzone_end(0), key_code(KEY_CODE_UNASSIGNED) {}
+  Panel(): deadzone_start(0), deadzone_end(0), key_code(KEY_CODE_UNASSIGNED) {}
 };
 
 /*
@@ -56,33 +53,19 @@ int meassure_counter = 0;
 void setup() {
   // Counter to properly offset the memory in the EEPROM
   int read_counter = 0;
-
-  // Read and compare the saved panel count
-  byte saved_count = EEPROM.read(read_counter);
-  read_counter += sizeof(saved_count);
   
   // Read and compare the saved pad-layout
-  bool layout[9];
+  bool layout[MAX_PANEL_COUNT];
   EEPROM.get(read_counter, layout);
   read_counter += sizeof(layout);
 
   bool same_layout = true;
-  for (int i = 0; i < 9; i++) {
+  for (int i = 0; i < MAX_PANEL_COUNT; i++) {
     same_layout &= (PAD_LAYOUT[i] == layout[i]);
   }
 
-  // Read and compare the saved pin-layout
-  int pins[9];
-  EEPROM.get(read_counter, pins);
-  read_counter += sizeof(pins);
-
-  bool same_pins = true;
-  for (int i = 0; i < 9; i++) {
-    same_pins &= (PIN_LAYOUT[i] == pins[i]);
-  }
-
   // Load previously saved panels if the layout and panel count is correct
-  if (saved_count == PANEL_COUNT && same_layout && same_pins) {
+  if (same_layout) {
     EEPROM.get(read_counter, panels);
     read_counter += sizeof(layout);
   }
@@ -95,11 +78,9 @@ void setup() {
  * @brief Utility function to print a panel to serial.
  * 
  * @param index Index of the panel to be printed
- * @param grouped If this is part of a grouped message or not
+ * @param separator The separator to use between the values
  */
-void printPanel(int index, bool grouped) {
-  char separator = grouped ? ',' : ' ';
-
+void printPanel(int index, char separator) {
   Serial.print(panels[index].deadzone_start);
   Serial.print(separator);
   Serial.print(panels[index].deadzone_end);
@@ -166,9 +147,11 @@ void handleMessage(char *message) {
 
       for (int i = 0; i < PANEL_COUNT; i++) {
         Serial.print(i);
-        Serial.print(':');
-        printPanel(i, true);
-        if (i != 3) {
+        Serial.print(',');
+        printPanel(i, ',');
+
+        // Not last, so append another space for the next entry
+        if ((i + 1) < PANEL_COUNT) {
           Serial.print(' ');
         }
       }
@@ -189,8 +172,13 @@ void handleMessage(char *message) {
     case 'l': {
       Serial.print("l ");
 
-      for (int i = 0; i < 9; i++) {
+      for (int i = 0; i < MAX_PANEL_COUNT; i++) {
         Serial.print(PAD_LAYOUT[i]);
+
+        // If not last, separate by space
+        if ((i + 1) < MEASSURE_COUNTER_LIMIT) {
+          Serial.print(' ');
+        }
       }
 
       Serial.print('\n');
@@ -214,7 +202,7 @@ void handleMessage(char *message) {
       Serial.print("g ");
       Serial.print(index);
       Serial.print(' ');
-      printPanel(index, false);
+      printPanel(index, ' ');
       Serial.print('\n');
 
       break;
@@ -278,21 +266,22 @@ void handleMessage(char *message) {
  * does it's job and executes this function again.
  */
 void loop() {
-  for (int i = 0; i < PIN_LAYOUT; i++) {
-    long pin = PIN_LAYOUT[i];
-    if (pin < 0) {
+  int panelIndex = 0;
+  for (int i = 0; i < MAX_PANEL_COUNT; i++) {
+    long pin = PAD_LAYOUT[i];
+    if (pin > PIN_UNASSIGNED) {
       continue;
     }
     val = analogRead(pin);
 
-    if (val < panels[i].deadzone_start && val > panels[i].deadzone_end) {
-      if (!already_pressed[i]) {
-        Keyboard.press(panels[i].key_code);
-        already_pressed[i] = true;
+    if (val < panels[panelIndex].deadzone_start && val > panels[panelIndex].deadzone_end) {
+      if (!already_pressed[panelIndex]) {
+        Keyboard.press(panels[panelIndex].key_code);
+        already_pressed[panelIndex] = true;
       }
-    } else if (already_pressed[i]) {
-      Keyboard.release(panels[i].key_code);
-      already_pressed[i] = false;
+    } else if (already_pressed[panelIndex]) {
+      Keyboard.release(panels[panelIndex].key_code);
+      already_pressed[panelIndex] = false;
     }
 
     if (enable_mesassure && meassure_counter % 250) {
@@ -302,17 +291,19 @@ void loop() {
       Serial.print(' ');
       Serial.println(val);
     }
+
+    panelIndex++;
   }
 
   if (enable_debug) {
-    if (debug_counter % 250) {
+    if (debug_counter % DEBUG_COUNTER_LIMIT) {
       debug_counter = 0;
     }
     debug_counter++;
   }
 
   if (enable_mesassure) {
-    if (meassure_counter % 250) {
+    if (meassure_counter % MEASSURE_COUNTER_LIMIT) {
       meassure_counter = 0;
     }
     meassure_counter++;
