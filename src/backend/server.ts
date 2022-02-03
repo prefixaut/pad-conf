@@ -10,7 +10,19 @@ const app = fastify({ logger: { prettyPrint: true } });
 
 app.register(fastifyWs);
 
-app.get('/', { websocket: true }, (wsConn, req) => {
+app.get('/', { websocket: true }, wsConn => {
+
+    wsConn.socket.on('message', rawData => {
+        try {
+            handleIncomingMessage(JSON.parse(rawData.toString()));
+        } catch (e) {
+            console.log(e);
+        }
+    });
+
+    wsConn.socket.on('close', () => {
+        serialDisconnect(true);
+    });
 
     let serialConn: SerialPort | null = null;
     let board: BoardConnection | null = null;
@@ -34,6 +46,9 @@ app.get('/', { websocket: true }, (wsConn, req) => {
         if (!silent) {
             send({ type: MessageType.DEVICE_DISCONNECT });
         }
+        if (board != null) {
+            board.close();
+        }
         serialConn = null;
         board = null;
     }
@@ -41,9 +56,14 @@ app.get('/', { websocket: true }, (wsConn, req) => {
     async function handleIncomingMessage(msg: Request) {
         switch (msg.type) {
             case MessageType.LIST_DEVICES:
-                respond(msg, true, {
-                    devices: await SerialPort.list()
-                });
+                try {
+                    respond(msg, true, {
+                        devices: await SerialPort.list()
+                    });
+                } catch (err) {
+                    console.error(err);
+                    respond(msg, false);
+                }
                 break;
 
             case MessageType.SELECT_DEVICE:
@@ -60,6 +80,7 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                             }));
                         }
                     } catch (err) {
+                        console.log(err);
                         respond(msg, false);
                         break;
                     }
@@ -74,57 +95,73 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                 }
 
                 try {
-                    serialConn = new SerialPort(msg.devicePath, { baudRate: 9600 });
+                    serialConn = new SerialPort(msg.devicePath, { baudRate: 9600, autoOpen: false });
                     board = new BoardConnection(serialConn);
                     currentDevice = msg.devicePath;
 
-                    serialConn.on('data', data => {
-                        const msg = data.toString();
+                    board.addMessageHandler(msg => {
                         if (msg.startsWith(Command.MEASSURE_VALUE)) {
                             const [index, value] = msg.substring(2).split(' ');
 
                             send({
-                                type: MessageType.MEASSUREMENT,
+                                type: MessageType.MEASUREMENT_VALUE,
                                 meassurePanelIndex: parseInt(index, 10),
                                 meassureValue: parseInt(value, 10),
                             });
-                        } else {
+                        }/* else {
                             wsConn.socket.send(JSON.stringify({
                                 type: 'trace',
-                                data: msg,
+                                data: msg.trim(),
                             }));
-                        }
+                        }*/
                     });
 
-                    serialConn.on('open', async () => {
-                        try {
-                            const [panels, layout] = await Promise.all([
-                                board.getPanels(),
-                                board.getPadLayout()
-                            ]);
-
-                            const res: SelectDeviceResponse = {
-                                type: MessageType.CONFIRMATION,
-                                confirmationType: MessageType.SELECT_DEVICE,
-                                confirmationSuccess: true,
-                                panels,
-                                panelCount: panels.length,
-                                layout,
-                            };
-
-                            send(res);
-                        } catch (err) {
-                            serialDisconnect(true);
-                            respond(msg, false);
-                        }
-                    });
-
-                    serialConn.on('error', err => {
-                        console.error('Unknown error from device!', err);
+                    await new Promise<void>((resolve, reject) => {
+                        serialConn.open(async err => {
+                            if (err) {
+                                reject(err);
+                                return;
+                            }
+                            resolve();
+                        });
                     });
 
                     serialConn.on('close', serialDisconnect);
 
+                    const [panels, layout] = await Promise.all([
+                        board.getPanels(),
+                        board.getPadLayout()
+                    ]);
+
+                    const res: SelectDeviceResponse = {
+                        type: MessageType.CONFIRMATION,
+                        confirmationType: MessageType.SELECT_DEVICE,
+                        confirmationSuccess: true,
+                        panels,
+                        panelCount: panels.length,
+                        layout,
+                    };
+
+                    send(res);                    
+                } catch (err) {
+                    console.error(err);
+                    serialDisconnect(true);
+                    respond(msg, false);
+                }
+
+                break;
+
+            case MessageType.GET_MEASUREMENT:
+                if (board == null) {
+                    respond(msg, false);
+                    break;
+                }
+
+                try {
+                    const isEnabled = await board.isMeassurementEnabled();
+                    respond(msg, true, {
+                        isEnabled,
+                    });
                 } catch (err) {
                     console.error(err);
                     respond(msg, false);
@@ -132,13 +169,22 @@ app.get('/', { websocket: true }, (wsConn, req) => {
 
                 break;
 
-            case MessageType.MEASSUREMENT:
+            case MessageType.SET_MEASUREMENT:
                 if (board == null) {
                     respond(msg, false);
                     break;
                 }
 
-                respond(msg, await board.setMeassurement(msg.meassureEnable));
+                try {
+                    const isEnabled = await board.setMeassurement(msg.measureEnable);
+                    respond(msg, true, {
+                        isEnabled,
+                    });
+                } catch (err) {
+                    console.error(err);
+                    respond(msg, false);
+                }
+
                 break;
 
             case MessageType.GET_PANEL:
@@ -154,6 +200,7 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                         settings,
                     });
                 } catch (err) {
+                    console.error(err);
                     respond(msg, false, {
                         panelIndex: msg.panelIndex,
                         settings: null,
@@ -171,6 +218,7 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                     await board.writePanel(msg.panelIndex, msg.settings);
                     respond(msg, true, { panelIndex: msg.panelIndex });
                 } catch (err) {
+                    console.error(err);
                     respond(msg, false, { panelIndex: msg.panelIndex });
                 }
                 break;
@@ -185,6 +233,7 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                     await board.reset();
                     respond(msg);
                 } catch (err) {
+                    console.error(err);
                     respond(msg, false);
                 }
                 break;
@@ -199,6 +248,7 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                     await board.save();
                     respond(msg);
                 } catch (err) {
+                    console.error(err);
                     respond(msg, false);
                 }
                 break;
@@ -215,23 +265,12 @@ app.get('/', { websocket: true }, (wsConn, req) => {
                         layout
                     });
                 } catch (err) {
+                    console.error(err);
                     respond(msg, false);
                 }
                 break;
         }
     }
-
-    wsConn.socket.on('message', rawData => {
-        try {
-            handleIncomingMessage(JSON.parse(rawData.toString()));
-        } catch (e) {
-            console.log(e);
-        }
-    });
-
-    wsConn.socket.on('close', () => {
-        serialConn?.close();
-    });
 });
 
 app.listen(8000, err => {

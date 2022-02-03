@@ -1,5 +1,6 @@
 import {
     ConfirmationBaseMessage,
+    GetMeasurementResponse,
     GetPanelResponse,
     ListDevicesResponse,
     Message,
@@ -20,6 +21,8 @@ const defaultFilter: (msg: Message) => ResponseFilter =
 
 export class ConnectionHandler {
     private static socket: WebSocket;
+    private static socketCloseHandler;
+    private static socketOpenHandler;
 
     private static responseHandlers: ResponseHandler[] = [];
     private static closeHandlers: CloseHandler[] = [];
@@ -62,7 +65,15 @@ export class ConnectionHandler {
         return ConnectionHandler.socket != null;
     }
 
-    private static async handleIncomingMessage(message: Response) {
+    static isMeasurementEnabled(): Promise<boolean> {
+        return ConnectionHandler.send({
+            type: MessageType.GET_MEASUREMENT,
+        }).then((msg: GetMeasurementResponse) => msg.isEnabled);
+    }
+
+    private static async handleIncomingMessage(event: MessageEvent<any>) {
+        const message: Response = JSON.parse(event.data);
+
         for (const handler of ConnectionHandler.responseHandlers) {
             try {
                 if (typeof (handler as any).then === 'function') {
@@ -81,17 +92,16 @@ export class ConnectionHandler {
             try {
                 ConnectionHandler.socket = new WebSocket(url);
 
-                ConnectionHandler.socket.addEventListener('open', event => {
+                ConnectionHandler.socketOpenHandler = () => {
                     resolve();
-                });
-
-                ConnectionHandler.socket.addEventListener('message', async event => {
-                    ConnectionHandler.handleIncomingMessage(JSON.parse(event.data));
-                });
-
-                ConnectionHandler.socket.addEventListener('close', () => {
+                };
+                ConnectionHandler.socketCloseHandler = () => {
                     ConnectionHandler.disconnect(false);
-                });
+                };
+
+                ConnectionHandler.socket.addEventListener('open', ConnectionHandler.socketOpenHandler);
+                ConnectionHandler.socket.addEventListener('message', ConnectionHandler.handleIncomingMessage);
+                ConnectionHandler.socket.addEventListener('close', ConnectionHandler.socketCloseHandler);
             } catch (e) {
                 reject(e);
             }
@@ -103,8 +113,23 @@ export class ConnectionHandler {
             return;
         }
 
-        ConnectionHandler.socket = null;
+        if (ConnectionHandler.socket != null) {
+            ConnectionHandler.socket.removeEventListener('open', ConnectionHandler.socketOpenHandler);
+            ConnectionHandler.socket.removeEventListener('message', ConnectionHandler.handleIncomingMessage);
+            ConnectionHandler.socket.removeEventListener('close', ConnectionHandler.socketCloseHandler);
+            if (ConnectionHandler.socket.readyState === WebSocket.CONNECTING || ConnectionHandler.socket.readyState === WebSocket.OPEN) {
+                try {
+                    ConnectionHandler.socket.close(manual ? 1000 : 1006);
+                } catch (err) {
+                    console.error('Error while closing WebSocket connection', err);
+                }
+            }
+        }
 
+        ConnectionHandler.socket = null;
+        ConnectionHandler.socketOpenHandler = null;
+        ConnectionHandler.socketCloseHandler = null;
+        
         for (const handler of ConnectionHandler.closeHandlers) {
             try {
                 handler(manual);
@@ -115,12 +140,18 @@ export class ConnectionHandler {
     }
 
     static send(msg: Message, filter: ResponseFilter = null): Promise<Message> {
+        if (ConnectionHandler.socket == null) {
+            return Promise.reject('No open connection!');
+        }
+
         if (filter == null) {
             filter = defaultFilter(msg);
         }
         ConnectionHandler.socket.send(JSON.stringify(msg));
         return new Promise((resolve, reject) => {
             let finished = false;
+            let timeoutId;
+
             const listener = (event) => {
                 try {
                     const res: Response = JSON.parse(event.data);
@@ -132,14 +163,17 @@ export class ConnectionHandler {
                         reject('server rejected request!');
                     } else {
                         finished = true;
+                        clearTimeout(timeoutId);
                         resolve(res);
                     }
-                } catch (e) { }
+                } catch { }
             };
             ConnectionHandler.socket.addEventListener('message', listener);
 
-            setTimeout(() => {
-                ConnectionHandler.socket.removeEventListener('message', listener);
+            timeoutId = setTimeout(() => {
+                if (ConnectionHandler.socket != null) {
+                    ConnectionHandler.socket.removeEventListener('message', listener);
+                }
                 if (!finished) {
                     reject('timeout reached, no response!');
                 }
@@ -162,8 +196,8 @@ export class ConnectionHandler {
 
     static enableMeassurements(enabled: boolean): Promise<void> {
         return ConnectionHandler.send({
-            type: MessageType.MEASSUREMENT,
-            meassureEnable: enabled,
+            type: MessageType.SET_MEASUREMENT,
+            measureEnable: enabled,
         }).then(() => {});
     }
 
@@ -182,7 +216,7 @@ export class ConnectionHandler {
             type: MessageType.UPDATE_PANEL,
             panelIndex: index,
             settings,
-        }, res => res.confirmationType === MessageType.GET_PANEL
+        }, res => res.confirmationType === MessageType.UPDATE_PANEL
             && (res as UpdatePanelResponse).panelIndex === index
         ).then(() => {});
     }

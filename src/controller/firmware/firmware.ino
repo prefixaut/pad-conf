@@ -6,7 +6,7 @@
 #define PIN_UNASSIGNED -1
 #define KEY_CODE_UNASSIGNED -1
 #define DEBUG_COUNTER_LIMIT 250
-#define MEASSURE_COUNTER_LIMIT 250
+#define MEASSURE_COUNTER_LIMIT 50
 
 /*
  * CONFIGURATION START
@@ -113,8 +113,8 @@ void handleMessage(char *message) {
       if (val == NULL) {
         Serial.print("d ");
         Serial.println(enable_debug);
-      } else if (strcmp(val, "0") != enable_debug) {
-        enable_debug = !enable_debug;
+      } else {
+        enable_debug = strcmp(val, "1") == 0;
         debug_counter = 0;
         Serial.print("d ");
         Serial.println(enable_debug);
@@ -127,12 +127,12 @@ void handleMessage(char *message) {
       char *val = strtok(NULL, " ");
 
       if (val == NULL) {
-        Serial.print("m ");
+        Serial.print("m g ");
         Serial.println(enable_mesassure);
-      } else if (strcmp(val, "0") != enable_mesassure) {
-        enable_mesassure = !enable_mesassure;
+      } else {
+        enable_mesassure = strcmp(val, "1") == 0;
         meassure_counter = 0;
-        Serial.print("m ");
+        Serial.print("m s ");
         Serial.println(enable_mesassure);
       }
 
@@ -266,7 +266,7 @@ void handleMessage(char *message) {
  * does it's job and executes this function again.
  */
 void loop() {
-  int panelIndex = 0;
+  int panel_index = 0;
   for (int i = 0; i < MAX_PANEL_COUNT; i++) {
     long pin = PAD_LAYOUT[i];
     if (pin > PIN_UNASSIGNED) {
@@ -274,25 +274,25 @@ void loop() {
     }
     val = analogRead(pin);
 
-    if (val < panels[panelIndex].deadzone_start && val > panels[panelIndex].deadzone_end) {
-      if (!already_pressed[panelIndex]) {
-        Keyboard.press(panels[panelIndex].key_code);
-        already_pressed[panelIndex] = true;
+    if (val < panels[panel_index].deadzone_start && val > panels[panel_index].deadzone_end) {
+      if (!already_pressed[panel_index]) {
+        Keyboard.press(panels[panel_index].key_code);
+        already_pressed[panel_index] = true;
       }
-    } else if (already_pressed[panelIndex]) {
-      Keyboard.release(panels[panelIndex].key_code);
-      already_pressed[panelIndex] = false;
+    } else if (already_pressed[panel_index]) {
+      Keyboard.release(panels[panel_index].key_code);
+      already_pressed[panel_index] = false;
     }
 
-    if (enable_mesassure && meassure_counter % 250) {
+    if (enable_mesassure && (meassure_counter % MEASSURE_COUNTER_LIMIT) == 0) {
       Serial.print('v');
       Serial.print(' ');
-      Serial.print(i);
+      Serial.print(panel_index);
       Serial.print(' ');
       Serial.println(val);
     }
 
-    panelIndex++;
+    panel_index++;
   }
 
   if (enable_debug) {
@@ -303,7 +303,7 @@ void loop() {
   }
 
   if (enable_mesassure) {
-    if (meassure_counter % MEASSURE_COUNTER_LIMIT) {
+    if ((meassure_counter % MEASSURE_COUNTER_LIMIT) == 0) {
       meassure_counter = 0;
     }
     meassure_counter++;

@@ -19,6 +19,9 @@ interface PanelEditorState extends Panel {
 
 export class PanelEditor extends React.Component<PanelEditorProps, PanelEditorState> {
 
+    private messageHandlerRef;
+    private closeHandlerRef;
+
     constructor(props) {
         super(props);
         this.state = {
@@ -30,8 +33,10 @@ export class PanelEditor extends React.Component<PanelEditorProps, PanelEditorSt
     }
 
     componentDidMount(): void {
-        ConnectionHandler.addResponseHandler(this.messageHandler);
-        ConnectionHandler.addCloseHandler(this.closeHandler);
+        this.messageHandlerRef = msg => this.messageHandler(msg);
+        this.closeHandlerRef = () => this.closeHandler();
+        ConnectionHandler.addResponseHandler(this.messageHandlerRef);
+        ConnectionHandler.addCloseHandler(this.closeHandlerRef);
 
         // Update the state with the current settings of the panel
         this.setState({
@@ -48,18 +53,18 @@ export class PanelEditor extends React.Component<PanelEditorProps, PanelEditorSt
     }
 
     componentWillUnmount(): void {
-        ConnectionHandler.removeCloseHandler(this.closeHandler);
-        ConnectionHandler.removeResponseHandler(this.messageHandler);
+        ConnectionHandler.removeCloseHandler(this.closeHandlerRef);
+        ConnectionHandler.removeResponseHandler(this.messageHandlerRef);
     }
 
     closeHandler() {
-        ConnectionHandler.removeCloseHandler(this.closeHandler);
-        ConnectionHandler.removeResponseHandler(this.messageHandler);
+        ConnectionHandler.removeCloseHandler(this.closeHandlerRef);
+        ConnectionHandler.removeResponseHandler(this.messageHandlerRef);
     }
 
     messageHandler(message: Response) {
         switch (message.type) {
-            case MessageType.MEASSUREMENT:
+            case MessageType.MEASUREMENT_VALUE:
                 if (message.meassurePanelIndex === this.props.panelIndex) {
                     this.setState({
                         currentValue: message.meassureValue,
@@ -88,7 +93,7 @@ export class PanelEditor extends React.Component<PanelEditorProps, PanelEditorSt
     }
 
     savePad() {
-
+        ConnectionHandler.saveSettings();
     }
 
     updateDeadzone(event) {
@@ -96,7 +101,7 @@ export class PanelEditor extends React.Component<PanelEditorProps, PanelEditorSt
     }
 
     render(): React.ReactNode {
-        const { deadzoneStart, deadzoneEnd, keyCode } = this.state;
+        const { deadzoneStart, deadzoneEnd, keyCode, currentValue } = this.state;
 
         return (
             <>
@@ -127,6 +132,12 @@ export class PanelEditor extends React.Component<PanelEditorProps, PanelEditorSt
                         </div>
                     </Stack>
                 </FormField>
+
+                {currentValue && <>
+                    <div className="ml-4">
+                        <span>Current Measurment:&nbsp;</span><code>{currentValue}</code>
+                    </div>
+                </>}
 
 
                 <div className="btn-group mt-6">

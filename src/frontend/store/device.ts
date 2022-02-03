@@ -28,6 +28,9 @@ export const deviceSlice = createSlice({
         devices(state, action: PayloadAction<Device[]>) {
             state.devices = action.payload;
         },
+        setSelectedDevice(state, action: PayloadAction<Device>) {
+            state.selectedDevice = action.payload;
+        },
         selectDevice(state, action: PayloadAction<Device>) {
             state.loading = true;
             state.selectedDevice = action.payload;
@@ -57,5 +60,5 @@ export const deviceSlice = createSlice({
     }
 });
 
-export const { devices, selectDevice, deviceSelected, mesasurements, panels, updatePanel, selectPanel } = deviceSlice.actions;
+export const { devices, selectDevice, setSelectedDevice, deviceSelected, mesasurements, panels, updatePanel, selectPanel } = deviceSlice.actions;
 export default deviceSlice.reducer;

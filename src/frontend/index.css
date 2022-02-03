@@ -1,8 +1,6 @@
 @import './styles/app.css';
-@import './styles/device-select.css';
 @import './styles/editor.css';
 @import './styles/pad-display.css';
-@import './styles/server-select.css';
 
 @tailwind base;
 @tailwind components;
@@ -36,6 +34,21 @@ code,
 
             &:hover {
                 box-shadow: 0px 0px 0px 2px var(--status-error) !important;; 
+            }
+
+            svg {
+                color: var(--dark-3) !important;
+                stroke: var(--light-3) !important; 
+            }
+        }
+
+        &.btn-success {
+            background: var(--status-ok) !important;
+            border-color: var(--status-ok) !important;
+            color: var(--light-3) !important;
+
+            &:hover {
+                box-shadow: 0px 0px 0px 2px var(--status-ok) !important;; 
             }
 
             svg {

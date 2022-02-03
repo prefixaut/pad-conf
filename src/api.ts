@@ -9,8 +9,12 @@ export enum MessageType {
     SELECT_DEVICE = 'select-device',
     /** Server Message-Type when the currently selected device has been disconnected */
     DEVICE_DISCONNECT = 'device-disconnect',
-    /** Reqeust & Server Message-Type to enable/disable meassurements and it's meassure */
-    MEASSUREMENT = 'meassurement',
+    /** Message to enable/disable the measurements */
+    SET_MEASUREMENT = 'set-measurement',
+    /** Message to get the measurements status */
+    GET_MEASUREMENT = 'get-measurement',
+    /** Server Message to display the current value of a pad */
+    MEASUREMENT_VALUE = 'measurement-value',
     /** Message to get a single panel's settings */
     GET_PANEL = 'get-panel',
     /** Message to update a single panel's settings */
@@ -28,7 +32,7 @@ export type Message = Request | Response;
 export type Request =
     | SimpleRequest
     | SelectDeviceRequest
-    | MeassurementRequest
+    | SetMeasurementRequest
     | GetPanelRequest
     | UpdatePanelRequest
     ;
@@ -38,7 +42,9 @@ export type Response =
     | ListDevicesResponse
     | SelectDeviceResponse
     | DeviceDisconnectMessage
-    | MeassurementResponse
+    | GetMeasurementResponse
+    | SetMeasurementResponse
+    | MeasurementValueMessage
     | GetPanelResponse
     | UpdatePanelResponse
     | GetLayoutResponse
@@ -57,6 +63,7 @@ export interface ConfirmationBaseMessage extends BaseMessage {
 export interface SimpleRequest extends BaseMessage {
     type:
     | MessageType.LIST_DEVICES
+    | MessageType.GET_MEASUREMENT
     | MessageType.RESET_SETTINGS
     | MessageType.SAVE_SETTINGS
     | MessageType.GET_LAYOUT
@@ -91,15 +98,23 @@ export interface DeviceDisconnectMessage extends BaseMessage {
     type: MessageType.DEVICE_DISCONNECT;
 }
 
-export interface MeassurementBaseMessage extends BaseMessage {
-    type: MessageType.MEASSUREMENT;
+export interface SetMeasurementRequest extends BaseMessage {
+    type: MessageType.SET_MEASUREMENT;
+    measureEnable: boolean;
 }
 
-export interface MeassurementRequest extends MeassurementBaseMessage {
-    meassureEnable: boolean;
+export interface SetMeasurementResponse extends ConfirmationBaseMessage {
+    confirmationType: MessageType.SET_MEASUREMENT;
+    isEnabled: boolean;
 }
 
-export interface MeassurementResponse extends MeassurementBaseMessage {
+export interface GetMeasurementResponse extends ConfirmationBaseMessage {
+    confirmationType: MessageType.GET_MEASUREMENT;
+    isEnabled: boolean;
+}
+
+export interface MeasurementValueMessage extends BaseMessage {
+    type: MessageType.MEASUREMENT_VALUE;
     meassureValue: number;
     meassurePanelIndex: number;
 }

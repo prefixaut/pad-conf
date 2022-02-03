@@ -1,4 +1,4 @@
-import { Button, FormField, Select } from 'grommet';
+import { Button, CheckBox, FormField, Select } from 'grommet';
 import { Refresh } from 'grommet-icons';
 import React from 'react';
 
@@ -9,7 +9,7 @@ import { selectDevice } from '../store/device';
 export function DeviceSelect(): JSX.Element {
 
     const dispatch = useAppDispatch();
-    const devices = useAppSelector(state => state.device.devices);
+    const { devices, measurements, selectedDevice } = useAppSelector(state => state.device);
     const options = devices.filter(device => device.path);
 
     return (
@@ -22,7 +22,7 @@ export function DeviceSelect(): JSX.Element {
                         onChange={event => dispatch(selectDevice(event.value))}
                         placeholder="Select Device"
                         id="devices"
-                        clear
+                        clear={true}
                     />
                 </FormField>
 
@@ -35,6 +35,17 @@ export function DeviceSelect(): JSX.Element {
                     />
                 </div>
             </div>
+
+            {selectedDevice != null && <>
+                <div className="form-row mt-4 ml-2">
+                    <CheckBox
+                        checked={measurements}
+                        label="Enable Value Measurements"
+                        toggle
+                        onChange={() => ConnectionHandler.enableMeassurements(!measurements)}
+                    />
+                </div>
+            </>}
         </section>
     );
 }

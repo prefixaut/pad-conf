@@ -3,21 +3,78 @@ import SerialPort from 'serialport';
 import { Command, PadLayout, Panel } from '../common';
 
 type ResponseFilter = (msg: string) => boolean;
+type MessageHandler = (msg: string) => any;
 
 export class BoardConnection {
     
+    private serialHandler;
+    private messageBuffer = '';
+    private messageHandlers: MessageHandler[] = [];
+
     constructor(
         private connection: SerialPort,
         private timeout: number = 5_000,
-    ) {}
+    ) {
+        this.serialHandler = event => this.handleSerialData(event);
+        this.connection.on('data', this.serialHandler);
+    }
+
+    private handleSerialData(event) {
+        const messages = [];
+        let msgIndex = 0;
+        const data = this.messageBuffer + event.toString();
+
+        for (let i = 0; i < data.length; i++) {
+            if (data[i] == '\r') {
+                continue;
+            }
+            if (data[i] == '\n') {
+                messages.push(data.substring(msgIndex, i).trim());
+                msgIndex = i+1;
+            }
+        }
+
+        this.messageBuffer = data.substring(msgIndex);
+
+        for (const msg of messages) {
+            for (const handler of this.messageHandlers) {
+                try {
+                    handler(msg);
+                } catch {}
+            }
+        }
+    }
+
+    public close() {
+        this.connection.off('data', this.serialHandler);
+        this.messageHandlers = [];
+        this.messageBuffer = '';
+    }
+
+    public addMessageHandler(handler: MessageHandler) {
+        if (this.messageHandlers.includes(handler)) {
+            return;
+        }
+        this.messageHandlers.push(handler);
+    }
+
+    public removeMessageHandler(handler: MessageHandler) {
+        const index = this.messageHandlers.indexOf(handler);
+        if (index === -1) {
+            return;
+        }
+        this.messageHandlers = [
+            ...this.messageHandlers.slice(0, index),
+            ...this.messageHandlers.slice(index + 1),
+        ];
+    }
 
     private sendAndWait(command: string, filter: ResponseFilter, timeout: number = this.timeout): Promise<string> {
         return new Promise((resolve, reject) => {
             let timer = null;
             let resolved = false;
 
-            const handler = (event: any) => {
-                const msg = event.toString().trim();
+            const handler = (msg) => {
                 if (!filter(msg)) {
                     return;
                 }
@@ -29,12 +86,12 @@ export class BoardConnection {
                 resolve(msg);
             };
 
-            this.connection.on('data', handler);
+            this.addMessageHandler(handler);
             this.send(command);
 
             if (!resolved) {
                 timer = setTimeout(() => {
-                    this.connection.off('data', handler);
+                    this.removeMessageHandler(handler);
                     const msg = `Command "${command}" reched a timeout!`;
                     console.error(msg);
                     reject(msg);
@@ -68,13 +125,13 @@ export class BoardConnection {
     }
 
     isMeassurementEnabled(timeout = this.timeout): Promise<boolean> {
-        return this.sendAndWait(Command.MEASSURE, msg => msg.startsWith(Command.MEASSURE), timeout)
+        return this.sendAndWait(Command.MEASSURE, msg => msg.startsWith(`${Command.MEASSURE} g`), timeout)
             .then(msg => msg.substring(2) === '1');
     }
 
     setMeassurement(value: boolean, timeout = this.timeout): Promise<boolean> {
-        return this.sendAndWait(`${Command.MEASSURE} ${value ? 1 : 0}`, msg => msg.startsWith(Command.MEASSURE), timeout)
-            .then(msg => msg.substring(2) === '1');
+        return this.sendAndWait(`${Command.MEASSURE} ${value ? 1 : 0}`, msg => msg.startsWith(`${Command.MEASSURE} s`), timeout)
+            .then(msg => msg.substring(4) === '1');
     }
 
     getPanels(timeout = this.timeout): Promise<Panel[]> {

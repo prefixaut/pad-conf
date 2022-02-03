@@ -18,7 +18,7 @@ export function ServerSelect(): JSX.Element {
     }
 
     function disconnect() {
-        ConnectionHandler.disconnect();
+        ConnectionHandler.disconnect(true);
     }
 
     return (
