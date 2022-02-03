@@ -1,4 +1,4 @@
-import { Box, Button, Form, FormField, RangeSelector, Stack, Text } from 'grommet';
+import { Box, Button, FormField, RangeSelector, Stack, Text } from 'grommet';
 import React from 'react';
 
 import { MessageType, Response } from '../../api';
@@ -7,10 +7,12 @@ import { ConnectionHandler } from '../connection-handler';
 import { store } from '../store';
 import { updatePanel } from '../store/device';
 import { openToast } from '../store/toast';
+import { KeybindInput } from './KeybindInput';
 
 interface PanelEditorProps {
     panelIndex: number;
     settings: Panel;
+    measurementEnabled: boolean;
 }
 
 interface PanelEditorState extends Panel {
@@ -133,11 +135,13 @@ export class PanelEditor extends React.Component<PanelEditorProps, PanelEditorSt
                     </Stack>
                 </FormField>
 
-                {currentValue && <>
+                {this.props.measurementEnabled && <>
                     <div className="ml-4">
                         <span>Current Measurment:&nbsp;</span><code>{currentValue}</code>
                     </div>
                 </>}
+
+                <KeybindInput />
 
 
                 <div className="btn-group mt-6">

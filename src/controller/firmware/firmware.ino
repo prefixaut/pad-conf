@@ -7,6 +7,7 @@
 #define KEY_CODE_UNASSIGNED -1
 #define DEBUG_COUNTER_LIMIT 250
 #define MEASSURE_COUNTER_LIMIT 50
+#define FS_OFFSET 0
 
 /*
  * CONFIGURATION START
@@ -52,10 +53,10 @@ int meassure_counter = 0;
  */
 void setup() {
   // Counter to properly offset the memory in the EEPROM
-  int read_counter = 0;
+  int read_counter = FS_OFFSET;
   
   // Read and compare the saved pad-layout
-  bool layout[MAX_PANEL_COUNT];
+  int layout[MAX_PANEL_COUNT];
   EEPROM.get(read_counter, layout);
   read_counter += sizeof(layout);
 
@@ -67,7 +68,7 @@ void setup() {
   // Load previously saved panels if the layout and panel count is correct
   if (same_layout) {
     EEPROM.get(read_counter, panels);
-    read_counter += sizeof(layout);
+    read_counter += sizeof(panels);
   }
 
   // USB is always 12 or 480 Mbit/sec
@@ -93,7 +94,17 @@ void printPanel(int index, char separator) {
  * 
  */
 void saveSettings() {
-  // TODO: Save the settings to the EEPROM
+  // Counter for proper memory offset
+  int write_counter = FS_OFFSET;
+
+  // Write the current pad-layout. Used to verify the stored settings, in case a new
+  // firmware is loaded, it get's invalidated if the layout doesn't match.
+  EEPROM.write(write_counter, PAD_LAYOUT);
+  write_counter += sizeof(PAD_LAYOUT);
+
+  // Write the panel settings.
+  EEPROM.write(write_counter, panels);
+  write_counter += sizeof(panels);
 }
 
 /**
@@ -111,12 +122,12 @@ void handleMessage(char *message) {
       char *val = strtok(NULL, " ");
 
       if (val == NULL) {
-        Serial.print("d ");
+        Serial.print("d g ");
         Serial.println(enable_debug);
       } else {
         enable_debug = strcmp(val, "1") == 0;
         debug_counter = 0;
-        Serial.print("d ");
+        Serial.print("d s ");
         Serial.println(enable_debug);
       }
       break;
@@ -269,7 +280,7 @@ void loop() {
   int panel_index = 0;
   for (int i = 0; i < MAX_PANEL_COUNT; i++) {
     long pin = PAD_LAYOUT[i];
-    if (pin > PIN_UNASSIGNED) {
+    if (PIN_UNASSIGNED >= pin) {
       continue;
     }
     val = analogRead(pin);
@@ -296,7 +307,7 @@ void loop() {
   }
 
   if (enable_debug) {
-    if (debug_counter % DEBUG_COUNTER_LIMIT) {
+    if ((debug_counter % DEBUG_COUNTER_LIMIT) == 0) {
       debug_counter = 0;
     }
     debug_counter++;

@@ -5,7 +5,7 @@ import { PadDisplay } from './PadDisplay';
 import { PanelEditor } from './PanelEditor';
 
 export function Editor(): JSX.Element {
-    const { loading, selectedPanel, panels } = useAppSelector(state => state.device);
+    const { loading, selectedPanel, panels, measurements } = useAppSelector(state => state.device);
 
     return (
         <section className="editor container">
@@ -13,6 +13,7 @@ export function Editor(): JSX.Element {
                 {selectedPanel != null && <PanelEditor
                     panelIndex={selectedPanel}
                     settings={panels[selectedPanel]}
+                    measurementEnabled={measurements}
                 />}
                 {selectedPanel == null && <>
                     Please select a Panel first!
