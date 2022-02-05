@@ -4,6 +4,7 @@ import React from 'react';
 import { MessageType, Response } from '../../api';
 import { KEY_CODE_UNASSIGNED, MAX_VALUE, MIN_VALUE, Panel } from '../../common';
 import { ConnectionHandler } from '../connection-handler';
+import { isMetaKey, Key, keyCodeToKey } from '../models/keys';
 import { store } from '../store';
 import { updatePanel } from '../store/device';
 import { openToast } from '../store/toast';
@@ -102,6 +103,12 @@ export class PanelEditor extends React.Component<PanelEditorProps, PanelEditorSt
         this.setState({ deadzoneStart: event[0], deadzoneEnd: event[1] });
     }
 
+    setKey(keys: Key | Key[]) {
+        this.setState({
+            keyCode: (Array.isArray(keys) ? keys : [keys]).filter(key => !isMetaKey(key))[0]?.keyCode,
+        });
+    }
+
     render(): React.ReactNode {
         const { deadzoneStart, deadzoneEnd, keyCode, currentValue } = this.state;
 
@@ -141,7 +148,9 @@ export class PanelEditor extends React.Component<PanelEditorProps, PanelEditorSt
                     </div>
                 </>}
 
-                <KeybindInput />
+                <FormField label="Keybind" className="mb-4 mt-4">
+                    <KeybindInput onChange={keys => this.setKey(keys)} value={keyCodeToKey(keyCode)} />
+                </FormField>
 
 
                 <div className="btn-group mt-6">

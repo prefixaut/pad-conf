@@ -3,6 +3,7 @@
 
 # local dependencies
 node_modules/
+.pio/
 
 # local env files
 .env.local

@@ -1,5 +1,6 @@
 @import './styles/app.css';
 @import './styles/editor.css';
+@import './styles/keybind-input.css';
 @import './styles/pad-display.css';
 
 @tailwind base;

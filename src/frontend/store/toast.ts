@@ -1,6 +1,6 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
-import { Toast } from '../toast';
+import { Toast } from '../models/toast';
 
 interface ToastState {
     openToasts: Toast[];
