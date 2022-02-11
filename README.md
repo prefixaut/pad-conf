@@ -1,68 +1,26 @@
 # Pad-Conf
 
-This Project is for a generic Dance Pad (3x3 Pad) for multiple Games like DDR, PIU, etc.
-
-Provides a custom firmware as well as a calibration tool to set it up and use it.
+This Project is to setup and calibrate a generic Dance Pad (3x3 Pad) for multiple Games like DDR, PIU, etc.
 
 Requirements:
-* [Teensy](https://www.pjrc.com/teensy/) (v4.0, v4.1)
-* Arduino IDE
 * [NodeJS](https://nodejs.org) 16 or higher
+* [Arduino](https://www.arduino.cc/en/Main/Products) or [Teensy](https://www.pjrc.com/teensy/) (v4.0, v4.1)
+* Teensy Development/Flash Setup:
+    * [Arduino IDE 1](https://www.arduino.cc/en/software) + [Teensyduino](https://www.pjrc.com/teensy/td_download.html)
+    * or [Platform IO](https://platformio.org/) (In progress)
+
+For detailed information for each component, please refer to the README in the respective directory:
+* [Backend](./backend/README.md)
+* [Common](./common/README.md)
+* [Controller](./controller/README.md)
+* [Frontend](./frontend/README.md)
 
 # How to Use
 
-1. Setup the Firmware
-2. Flash the Firmware
-3. Start the Configurator
+1. [Setup the Firmware](./docs/FIRMWARE_INSTALL.md#setup-the-firmware)
+2. [Flash the Firmware](./docs/FIRMWARE_INSTALL.md#flash-the-firmware)
+3. Start the Backend-Server
+4. Open the Configurator App
 
-## Setup the Firmware
+# Installation
 
-First, you should setup the firmware and flash it onto your controller.
-Open the [firmware-file](src/controller/firmware/firmware.ino) and edit the `PANEL_COUNT` and `PAD_LAYOUT` constants.
-
-`PANEL_COUNT` is the amount of active Panels of your Pad. Examples would be: DDR=4, PIU=5
-
-It represents a 3x3 grid which is designed from left-to-right, top-to-bottom:
-
-```
-|1|2|3|
-|4|5|6|
-|7|8|9|
-```
-
-Sample for a DDR Pad:
-
-```
-| |1| |
-|2| |3|
-| |4| |
-```
-
-Sample for a PIU Pad:
-
-```
-|1| |2|
-| |3| |
-|4| |5|
-```
-
-If a Panel is active, you need to specify which Pin it is connected to on the controller (Note: Usually these start from `0`!).
-If a Panel is unsed, simply specify `PIN_UNASSIGNED`.
-
-## Flash the Firmware
-
-# Components
-
-As this project requires three widely different components.
-
-## Server
-
-> Source: `src/server`
-
-The Server is an intermediate hub which handles the connection to the Frontend and the micro-controller.
-
-While the connection to the Frontend is WebSocket based, the connection to the micro-controller is a custom minimal line-based protocol.
-
-## Frontend
-
-> Source: `src/frontent`

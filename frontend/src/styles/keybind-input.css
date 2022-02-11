@@ -1,0 +1,20 @@
+.keybind-input {
+    display: flex;
+    position: relative;
+
+    .content {
+        flex: 1 1 auto;
+        /* border: 1px solid #000; */
+        background: transparent;
+        padding: 11px;
+        width: 100%;
+        transition: 200ms;
+    }
+
+    .value {
+        user-select: none;
+        position: absolute;
+        top: 0;
+        padding: 11px;
+    }
+}
