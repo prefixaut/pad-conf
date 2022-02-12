@@ -1,9 +1,10 @@
 {
     "extends": "../tsconfig.json",
-    "include": ["./src/**"],
+    "include": ["src"],
     "compilerOptions": {
         "outDir": "./dist",
-        "module": "ES2020",
+        "module": "CommonJS",
+        "target": "ES2020",
         "lib": [
             "DOM",
             "ES6"

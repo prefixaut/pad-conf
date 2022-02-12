@@ -26,6 +26,7 @@ yarn-error.log*
 
 # built files
 dist/
+bundle/
 
 # coverage output
 .nyc_output/

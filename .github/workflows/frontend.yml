@@ -24,7 +24,7 @@ jobs:
     - name: Install dependencies
       run: yarn
     - name: Build
-      run: yarn frontend:build
+      run: yarn frontend:build --base /pad-conf/
 
     - name: Deploy to GitHub-Pages
       uses: JamesIves/github-pages-deploy-action@v4.2.3
