@@ -40,5 +40,6 @@ jobs:
       if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.node == '16' }}
       with:
         artifacts: "backend/bundle/*"
+        allowUpdates: true
         prerelease: ${{ endsWith(github.ref, 'rc') || endsWith(github.ref, 'snapshot') }}
         token: ${{ secrets.GITHUB_TOKEN }}
