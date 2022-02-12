@@ -48,6 +48,6 @@
     "frontend:preview": "vite preview frontend",
     "backend:serve": "ts-node-dev backend/src/server.ts",
     "backend:build": "tsc -p ./backend/tsconfig.json",
-    "backend:package": "pkg --compress=brotli --debug --public --out-path=./backend/bundle ./backend/dist/backend/src/server.js"
+    "backend:package": "pkg --compress=brotli --public --out-path=./backend/bundle ./backend/dist/backend/src/server.js"
   }
 }

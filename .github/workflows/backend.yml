@@ -33,11 +33,11 @@ jobs:
       run: yarn backend:build
     
     - name: Create Release Package
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.node == '16' }}
       run: yarn backend:package
     - name: Release 
       uses: ncipollo/release-action@v1
-      if: ${{ startsWith(github.ref, 'refs/tags/') }}
+      if: ${{ startsWith(github.ref, 'refs/tags/') && matrix.node == '16' }}
       with:
         artifacts: "backend/bundle/*"
         prerelease: ${{ endsWith(github.ref, 'rc') || endsWith(github.ref, 'snapshot') }}
