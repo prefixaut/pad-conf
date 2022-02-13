@@ -1,3 +1,10 @@
+![Supported Systems](https://img.shields.io/badge/Supported%20Systems-Windows%2FLinux%2FMacOS-blue?style=for-the-badge)
+![Frontend Workflow Status](https://img.shields.io/github/workflow/status/prefixaut/pad-conf/Frontend?label=Build%3A%20Frontend&style=for-the-badge)
+![Backend Workflow Status](https://img.shields.io/github/workflow/status/prefixaut/pad-conf/Backend?label=Build%3A%20Backend&style=for-the-badge)
+![Controller Workflow Status](https://img.shields.io/github/workflow/status/prefixaut/pad-conf/Controller?label=Build%3A%20Controller&style=for-the-badge)
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/prefixaut/pad-conf?sort=semver&style=for-the-badge)
+![GitHub](https://img.shields.io/github/license/prefixaut/pad-conf?style=for-the-badge)
+
 # Pad-Conf
 
 This Project is to setup and calibrate a generic Dance Pad (3x3 Pad) for multiple Games like DDR, PIU, etc.
