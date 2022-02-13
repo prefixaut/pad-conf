@@ -1,0 +1,529 @@
+{
+    "keys": [
+        {
+            "code": "Digit0",
+            "key": "0",
+            "keyCode": 48
+        },
+        {
+            "code": "Digit1",
+            "key": "1",
+            "keyCode": 49
+        },
+        {
+            "code": "Digit2",
+            "key": "2",
+            "keyCode": 50
+        },
+        {
+            "code": "Digit3",
+            "key": "3",
+            "keyCode": 51
+        },
+        {
+            "code": "Digit4",
+            "key": "4",
+            "keyCode": 52
+        },
+        {
+            "code": "Digit5",
+            "key": "5",
+            "keyCode": 53
+        },
+        {
+            "code": "Digit6",
+            "key": "6",
+            "keyCode": 54
+        },
+        {
+            "code": "Digit7",
+            "key": "7",
+            "keyCode": 55
+        },
+        {
+            "code": "Digit8",
+            "key": "8",
+            "keyCode": 56
+        },
+        {
+            "code": "Digit9",
+            "key": "0",
+            "keyCode": 57
+        },
+        {
+            "code": "KeyA",
+            "key": "a",
+            "keyCode": 65
+        },
+        {
+            "code": "KeyB",
+            "key": "b",
+            "keyCode": 66
+        },
+        {
+            "code": "KeyC",
+            "key": "c",
+            "keyCode": 67
+        },
+        {
+            "code": "KeyD",
+            "key": "d",
+            "keyCode": 68
+        },
+        {
+            "code": "KeyE",
+            "key": "e",
+            "keyCode": 69
+        },
+        {
+            "code": "KeyF",
+            "key": "f",
+            "keyCode": 70
+        },
+        {
+            "code": "KeyG",
+            "key": "g",
+            "keyCode": 71
+        },
+        {
+            "code": "KeyH",
+            "key": "h",
+            "keyCode": 72
+        },
+        {
+            "code": "KeyI",
+            "key": "i",
+            "keyCode": 73
+        },
+        {
+            "code": "KeyJ",
+            "key": "j",
+            "keyCode": 74
+        },
+        {
+            "code": "KeyK",
+            "key": "k",
+            "keyCode": 75
+        },
+        {
+            "code": "KeyL",
+            "key": "l",
+            "keyCode": 76
+        },
+        {
+            "code": "KeyM",
+            "key": "m",
+            "keyCode": 77
+        },
+        {
+            "code": "KeyN",
+            "key": "n",
+            "keyCode": 78
+        },
+        {
+            "code": "KeyO",
+            "key": "o",
+            "keyCode": 79
+        },
+        {
+            "code": "KeyP",
+            "key": "p",
+            "keyCode": 80
+        },
+        {
+            "code": "KeyQ",
+            "key": "q",
+            "keyCode": 81
+        },
+        {
+            "code": "KeyR",
+            "key": "r",
+            "keyCode": 82
+        },
+        {
+            "code": "KeyS",
+            "key": "s",
+            "keyCode": 83
+        },
+        {
+            "code": "KeyT",
+            "key": "t",
+            "keyCode": 84
+        },
+        {
+            "code": "KeyU",
+            "key": "u",
+            "keyCode": 85
+        },
+        {
+            "code": "KeyV",
+            "key": "v",
+            "keyCode": 86
+        },
+        {
+            "code": "KeyW",
+            "key": "w",
+            "keyCode": 87
+        },
+        {
+            "code": "KeyX",
+            "key": "x",
+            "keyCode": 88
+        },
+        {
+            "code": "KeyY",
+            "key": "z",
+            "keyCode": 89
+        },
+        {
+            "code": "KeyZ",
+            "key": "z",
+            "keyCode": 90
+        },
+        {
+            "code": "Comma",
+            "key": ",",
+            "keyCode": 188
+        },
+        {
+            "code": "Period",
+            "key": ".",
+            "keyCode": 190
+        },
+        {
+            "code": "Semicolon",
+            "key": ";",
+            "keyCode": 186
+        },
+        {
+            "code": "Quote",
+            "key": "\"",
+            "keyCode": 222
+        },
+        {
+            "code": "BracketLeft",
+            "key": "(",
+            "keyCode": 219
+        },
+        {
+            "code": "BracketRight",
+            "key": ")",
+            "keyCode": 221
+        },
+        {
+            "code": "Backquote",
+            "key": "`",
+            "keyCode": 192
+        },
+        {
+            "code": "Backslash",
+            "key": "\\",
+            "keyCode": 220
+        },
+        {
+            "code": "Minus",
+            "key": "-",
+            "keyCode": 189
+        },
+        {
+            "code": "Equal",
+            "key": "=",
+            "keyCode": 187
+        },
+        {
+            "code": "ContextMenu",
+            "key": "ContextMenu",
+            "keyCode": 93
+        },
+        {
+            "code": "Enter",
+            "key": "Enter",
+            "keyCode": 13
+        },
+        {
+            "code": "Space",
+            "key": "Space",
+            "keyCode": 32
+        },
+        {
+            "code": "Tab",
+            "key": "Tab",
+            "keyCode": 9
+        },
+        {
+            "code": "Delete",
+            "key": "Delete",
+            "keyCode": 46
+        },
+        {
+            "code": "End",
+            "key": "End",
+            "keyCode": 35
+        },
+        {
+            "code": "Home",
+            "key": "Home",
+            "keyCode": 36
+        },
+        {
+            "code": "Insert",
+            "key": "Insert",
+            "keyCode": 45
+        },
+        {
+            "code": "PageDown",
+            "key": "PageDown",
+            "keyCode": 34
+        },
+        {
+            "code": "PageUp",
+            "key": "PageUp",
+            "keyCode": 33
+        },
+        {
+            "code": "ArrowDown",
+            "key": "ArrowDown",
+            "keyCode": 40
+        },
+        {
+            "code": "ArrowLeft",
+            "key": "ArrowLeft",
+            "keyCode": 37
+        },
+        {
+            "code": "ArrowRight",
+            "key": "ArrowRight",
+            "keyCode": 39
+        },
+        {
+            "code": "ArrowUp",
+            "key": "ArrowUp",
+            "keyCode": 38
+        },
+        {
+            "code": "Escape",
+            "key": "Escape",
+            "keyCode": 27
+        },
+        {
+            "code": "PrintScreen",
+            "key": "PrintScreen",
+            "keyCode": 44
+        },
+        {
+            "code": "ScollLock",
+            "key": "ScrollLock",
+            "keyCode": 145
+        },
+        {
+            "code": "Pause",
+            "key": "Pause",
+            "keyCode": 19
+        },
+        {
+            "code": "F1",
+            "key": "F1",
+            "keyCode": 112
+        },
+        {
+            "code": "F2",
+            "key": "F2",
+            "keyCode": 113
+        },
+        {
+            "code": "F3",
+            "key": "F3",
+            "keyCode": 114
+        },
+        {
+            "code": "F4",
+            "key": "F4",
+            "keyCode": 115
+        },
+        {
+            "code": "F5",
+            "key": "F5",
+            "keyCode": 116
+        },
+        {
+            "code": "F6",
+            "key": "F6",
+            "keyCode": 117
+        },
+        {
+            "code": "F7",
+            "key": "F7",
+            "keyCode": 118
+        },
+        {
+            "code": "F8",
+            "key": "F8",
+            "keyCode": 119
+        },
+        {
+            "code": "F9",
+            "key": "F9",
+            "keyCode": 120
+        },
+        {
+            "code": "F10",
+            "key": "F10",
+            "keyCode": 121
+        },
+        {
+            "code": "F11",
+            "key": "F11",
+            "keyCode": 122
+        },
+        {
+            "code": "F12",
+            "key": "F12",
+            "keyCode": 123
+        },
+        {
+            "code": "F13",
+            "key": "F13",
+            "keyCode": 124
+        },
+        {
+            "code": "F14",
+            "key": "F14",
+            "keyCode": 125
+        },
+        {
+            "code": "F15",
+            "key": "F15",
+            "keyCode": 126
+        },
+        {
+            "code": "F16",
+            "key": "F16",
+            "keyCode": 127
+        },
+        {
+            "code": "F17",
+            "key": "F17",
+            "keyCode": 128
+        },
+        {
+            "code": "F18",
+            "key": "F18",
+            "keyCode": 129
+        },
+        {
+            "code": "F19",
+            "key": "F19",
+            "keyCode": 130
+        },
+        {
+            "code": "F20",
+            "key": "F20",
+            "keyCode": 131
+        },
+        {
+            "code": "F21",
+            "key": "F21",
+            "keyCode": 132
+        },
+        {
+            "code": "F22",
+            "key": "F22",
+            "keyCode": 133
+        },
+        {
+            "code": "F23",
+            "key": "F23",
+            "keyCode": 134
+        },
+        {
+            "code": "F24",
+            "key": "F24",
+            "keyCode": 135
+        },
+        {
+            "code": "NumLock",
+            "key": "NumLock",
+            "keyCode": 144
+        },
+        {
+            "code": "Numpad1",
+            "key": "Numpad1",
+            "keyCode": 97
+        },
+        {
+            "code": "Numpad2",
+            "key": "Numpad2",
+            "keyCode": 98
+        },
+        {
+            "code": "Numpad3",
+            "key": "Numpad3",
+            "keyCode": 99
+        },
+        {
+            "code": "Numpad4",
+            "key": "Numpad4",
+            "keyCode": 100
+        },
+        {
+            "code": "Numpad5",
+            "key": "Numpad5",
+            "keyCode": 101
+        },
+        {
+            "code": "Numpad6",
+            "key": "Numpad6",
+            "keyCode": 102
+        },
+        {
+            "code": "Numpad7",
+            "key": "Numpad7",
+            "keyCode": 103
+        },
+        {
+            "code": "Numpad8",
+            "key": "Numpad8",
+            "keyCode": 104
+        },
+        {
+            "code": "Numpad9",
+            "key": "Numpad0",
+            "keyCode": 105
+        },
+        {
+            "code": "NumpadComma",
+            "key": "NumpadComma",
+            "keyCode": 194
+        },
+        {
+            "code": "NumpadDecimal",
+            "key": "NumpadDecimal",
+            "keyCode": 110
+        },
+        {
+            "code": "NumpadDivide",
+            "key": "NumpadDivide",
+            "keyCode": 111
+        },
+        {
+            "code": "NumpadEnter",
+            "key": "NumpadEnter",
+            "keyCode": 13
+        },
+        {
+            "code": "NumpadEqual",
+            "key": "NumpadEqual",
+            "keyCode": 12
+        },
+        {
+            "code": "NumpadMultiply",
+            "key": "NumpadMultiply",
+            "keyCode": 106
+        },
+        {
+            "code": "NumpadSubtract",
+            "key": "NumpadSubtract",
+            "keyCode": 109
+        }
+    ]
+}
