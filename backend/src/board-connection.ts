@@ -46,7 +46,9 @@ export class BoardConnection {
     }
 
     public close() {
-        this.connection.off('data', this.serialHandler);
+        try {
+            this.connection.off('data', this.serialHandler);
+        } catch {}
         this.messageHandlers = [];
         this.messageBuffer = '';
     }
@@ -101,7 +103,8 @@ export class BoardConnection {
         });
     }
 
-    private send(command: string) {
+    public send(command: string) {
+        command = command.trim();
         console.log(`Sending command "${command}" ...`);
         this.connection.write(command + '\n', this.writeHandler(command));
     }

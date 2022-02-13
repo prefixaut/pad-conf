@@ -26,6 +26,7 @@
     "framer-motion": "^5",
     "grommet": "^2.20.0",
     "grommet-icons": "^4.7.0",
+    "minimist": "^1.2.5",
     "pino-pretty": "^7.3.0",
     "pkg": "^5.5.2",
     "polished": "^4.1.4",
@@ -46,8 +47,8 @@
     "frontend:serve": "vite dev frontend",
     "frontend:build": "vite build frontend",
     "frontend:preview": "vite preview frontend",
-    "backend:serve": "ts-node-dev backend/src/server.ts",
+    "backend:serve": "ts-node-dev backend/src/main.ts",
     "backend:build": "tsc -p ./backend/tsconfig.json",
-    "backend:package": "pkg --compress=brotli --public --out-path=./backend/bundle ./backend/dist/backend/src/server.js"
+    "backend:package": "pkg --compress=brotli --public --output=./backend/bundle/pad_server ./backend/dist/backend/src/main.js"
   }
 }
