@@ -4,6 +4,7 @@
         "allowSyntheticDefaultImports": true,
         "target": "ES2018",
         "module": "CommonJS",
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "resolveJsonModule": true
     }
 }

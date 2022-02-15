@@ -1,5 +1,6 @@
 import fastify from 'fastify';
 import fastifyWs from 'fastify-websocket';
+import { Logger } from 'pino';
 import SerialPort from 'serialport';
 
 import { Message, MessageType, Request, Response, SelectDeviceResponse } from '../../common/src/api';
@@ -7,8 +8,8 @@ import { Command } from '../../common/src/common';
 import { BoardConnection } from './board-connection';
 import { BackendArgments } from './models/options';
 
-export function createWebSocketServer(args: BackendArgments) {
-    const app = fastify({ logger: { prettyPrint: true } });
+export function createWebSocketServer(args: BackendArgments, logger: Logger) {
+    const app = fastify({ logger });
     
     app.register(fastifyWs);
     
@@ -18,7 +19,7 @@ export function createWebSocketServer(args: BackendArgments) {
             try {
                 handleIncomingMessage(JSON.parse(rawData.toString()));
             } catch (e) {
-                console.log(e);
+                logger.error({ service: 'server', msg: e.message, error: e });
             }
         });
     
@@ -44,7 +45,7 @@ export function createWebSocketServer(args: BackendArgments) {
         }
     
         function serialDisconnect(silent: boolean = false) {
-            console.log('Device disconnected!');
+            logger.info({ service: 'server', msg: 'Device disconnected!' });
             if (!silent) {
                 send({ type: MessageType.DEVICE_DISCONNECT });
             }
@@ -63,7 +64,7 @@ export function createWebSocketServer(args: BackendArgments) {
                             devices: await SerialPort.list()
                         });
                     } catch (err) {
-                        console.error(err);
+                        logger.error({ service: 'server', msg: err.message, error: err });
                         respond(msg, false);
                     }
                     break;
@@ -82,7 +83,7 @@ export function createWebSocketServer(args: BackendArgments) {
                                 }));
                             }
                         } catch (err) {
-                            console.log(err);
+                            logger.error({ service: 'server', msg: err.message, error: err });
                             respond(msg, false);
                             break;
                         }
@@ -146,7 +147,7 @@ export function createWebSocketServer(args: BackendArgments) {
     
                         send(res);                    
                     } catch (err) {
-                        console.error(err);
+                        logger.error({ service: 'server', msg: err.message, error: err });
                         serialDisconnect(true);
                         respond(msg, false);
                     }
@@ -165,7 +166,7 @@ export function createWebSocketServer(args: BackendArgments) {
                             isEnabled,
                         });
                     } catch (err) {
-                        console.error(err);
+                        logger.error({ service: 'server', msg: err.message, error: err });
                         respond(msg, false);
                     }
     
@@ -183,7 +184,7 @@ export function createWebSocketServer(args: BackendArgments) {
                             isEnabled,
                         });
                     } catch (err) {
-                        console.error(err);
+                        logger.error({ service: 'server', msg: err.message, error: err });
                         respond(msg, false);
                     }
     
@@ -202,7 +203,7 @@ export function createWebSocketServer(args: BackendArgments) {
                             settings,
                         });
                     } catch (err) {
-                        console.error(err);
+                        logger.error({ service: 'server', msg: err.message, error: err });
                         respond(msg, false, {
                             panelIndex: msg.panelIndex,
                             settings: null,
@@ -220,7 +221,7 @@ export function createWebSocketServer(args: BackendArgments) {
                         await board.writePanel(msg.panelIndex, msg.settings);
                         respond(msg, true, { panelIndex: msg.panelIndex });
                     } catch (err) {
-                        console.error(err);
+                        logger.error({ service: 'server', msg: err.message, error: err });
                         respond(msg, false, { panelIndex: msg.panelIndex });
                     }
                     break;
@@ -235,7 +236,7 @@ export function createWebSocketServer(args: BackendArgments) {
                         await board.reset();
                         respond(msg);
                     } catch (err) {
-                        console.error(err);
+                        logger.error({ service: 'server', msg: err.message, error: err });
                         respond(msg, false);
                     }
                     break;
@@ -250,7 +251,7 @@ export function createWebSocketServer(args: BackendArgments) {
                         await board.save();
                         respond(msg);
                     } catch (err) {
-                        console.error(err);
+                        logger.error({ service: 'server', msg: err.message, error: err });
                         respond(msg, false);
                     }
                     break;
@@ -267,7 +268,7 @@ export function createWebSocketServer(args: BackendArgments) {
                             layout
                         });
                     } catch (err) {
-                        console.error(err);
+                        logger.error({ service: 'server', msg: err.message, error: err });
                         respond(msg, false);
                     }
                     break;
@@ -277,7 +278,7 @@ export function createWebSocketServer(args: BackendArgments) {
 
     app.listen(args.port, err => {
         if (err) {
-            console.log(err);
+            logger.error({ service: 'server', msg: err.message, error: err });
         }
     });
 

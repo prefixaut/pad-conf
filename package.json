@@ -1,6 +1,6 @@
 {
   "name": "pad-conf",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "main": "index.js",
   "license": "MIT",
   "private": true,
@@ -27,7 +27,8 @@
     "grommet": "^2.20.0",
     "grommet-icons": "^4.7.0",
     "minimist": "^1.2.5",
-    "pino-pretty": "^7.3.0",
+    "pino": "^7.8.0",
+    "pino-pretty": "^7.5.1",
     "pkg": "^5.5.2",
     "polished": "^4.1.4",
     "postcss": "^8.4.5",
@@ -48,6 +49,7 @@
     "frontend:build": "vite build frontend",
     "frontend:preview": "vite preview frontend",
     "backend:serve": "ts-node-dev backend/src/main.ts",
+    "backend:interactive": "ts-node-dev backend/src/main.ts --interactive",
     "backend:build": "tsc -p ./backend/tsconfig.json",
     "backend:package": "pkg --compress=brotli --public --output=./backend/bundle/pad_server ./backend/dist/backend/src/main.js"
   }

@@ -1,7 +1,8 @@
 import { FastifyInstance } from 'fastify';
+import parseArgs from 'minimist';
+import { Logger } from 'pino';
 import { createInterface } from 'readline';
 import SerialPort from 'serialport';
-import parseArgs from 'minimist';
 
 import { BoardConnection } from './board-connection';
 import { BackendArgments } from './models/options';
@@ -11,18 +12,37 @@ export function parseArguments(): BackendArgments {
     return parseArgs(process.argv.slice(2), {
         boolean: [
             'interactive',
+            'help',
+            'version',
+            'trace',
+            'log-out',
+        ],
+        strings: [
+            'log-out',
+            'level',
         ],
         alias: {
-            i: 'interactive',
+            'h': 'help',
+            '?': 'help',
+            'v': 'version',
+            't': 'trace',
+            'o': 'log-out',
+            'l': 'level',
+            'i': 'interactive',
         },
         default: {
+            help: false,
+            version: false,
+            trace: false,
             interactive: false,
+            'log-out': null,
+            'level': 'info',
             port: 8000,
         }
     });
 }
 
-export function createInteractiveShell(args: BackendArgments) {
+export function createInteractiveShell(args: BackendArgments, logger: Logger) {
     return new Promise<void>(resolve => {
         let selectedDevice: string;
         let connection: SerialPort;
@@ -46,15 +66,15 @@ export function createInteractiveShell(args: BackendArgments) {
             } catch {}
             if (commandMode) {
                 if (printMessage) {
-                    console.log('Device disconnected! Exiting command mode!');
+                    logger.info('Device disconnected! Exiting command mode!');
                 }
                 commandMode = false;
             } else if (printMessage) {
-                console.log('Device disconnected!');
+                logger.info('Device disconnected!');
             }
         }
 
-        console.log('Welcome to the pad-conf backend!');
+        logger.info('Welcome to the pad-conf backend!');
     
         rl.on('line', line => {
             line = line.trim();
@@ -68,8 +88,8 @@ export function createInteractiveShell(args: BackendArgments) {
                     case 'stop':
                     case 'quit':
                         commandMode = false;
-                        board.removeMessageHandler(console.log);
-                        console.log('Exited command mode!');
+                        board.removeMessageHandler(logger.info);
+                        logger.info('Exited command mode!');
                         return;
                 }
 
@@ -79,19 +99,19 @@ export function createInteractiveShell(args: BackendArgments) {
 
             switch (line) {
                 case 'status':
-                    console.log(`Server Status: ${server != null ? 'Online' : 'Offline'}`);
-                    console.log(`Selected Device: ${selectedDevice || '-none-'}`);
+                    logger.info(`Server Status: ${server != null ? 'Online' : 'Offline'}`);
+                    logger.info(`Selected Device: ${selectedDevice || '-none-'}`);
                     return;
                     
                 case 'start':
                     if (server != null) {
-                        console.log('Server is already started!');
+                        logger.info('Server is already started!');
                         return;
                     }
 
-                    console.log('Starting server ...');
-                    server = createWebSocketServer(args).app;
-                    console.log('Server started!');
+                    logger.info('Starting server ...');
+                    server = createWebSocketServer(args, logger).app;
+                    logger.info('Server started!');
                     return;
     
                 case 'exit':
@@ -99,9 +119,9 @@ export function createInteractiveShell(args: BackendArgments) {
                 case 'quit':
                 case 'shutdown':
                     if (server != null) {
-                        console.log('Shutting down server ...');
+                        logger.info('Shutting down server ...');
                         server.close(() => {
-                            console.log('Server has shutdown.');
+                            logger.info('Server has shutdown.');
                             server = null;
                             resolve();
                         });
@@ -113,59 +133,87 @@ export function createInteractiveShell(args: BackendArgments) {
                 case 'list':
                 case 'ls':
                     SerialPort.list().then(devices => {
-                        console.log('Available devices: ');
-                        devices.forEach(dev => console.log(`\t* ${dev.path}`));
+                        logger.info('Available devices: ');
+                        devices.forEach(device => {
+                            let name = [
+                                device.manufacturer,
+                                device.pnpId,
+                            ]
+                                .filter(str => typeof str === 'string' && !str.startsWith('('))
+                                .join(' ')
+                                .trim();
+                        
+                            if (name != '') {
+                                name = `${device.path}: ${name}`.trim();
+                            } else {
+                                name = device.path;
+                            }
+
+                            logger.info(`    * ${name}`);
+                        });
+                        logger.info('');
                     });
                     return;
                 
                 case 'disconnect':
                     if (selectedDevice == null) {
-                        console.log('No device currently selected!');
+                        logger.info('No device currently selected!');
                         return;
                     }
 
                     disconnectDevice();
-                    console.log('Device disconnected!');
+                    logger.info('Device disconnected!');
                     return;
                 
                 case 'cmd':
                 case 'command':
                     if (selectedDevice == null) {
-                        console.log('No device selected!');
+                        logger.info('No device selected!');
                         return;
                     }
 
                     commandMode = true;
-                    board.addMessageHandler(console.log);
-                    console.log("You're now in command mode! Type 'exit' to exit this mode!");
+                    board.addMessageHandler(logger.info);
+                    logger.info("You're now in command mode! Type 'exit' to exit this mode!");
                     return;
                 
                 case '?':
                 case 'help':
-                    console.log("todo: help page");
+                    logger.info(
+`You're in the regular management mode. Available commands:
+
+    * status            Check the status of the server and the selected device.
+    * start             Start the server to connect via the UI to calibrate your Pad.
+    * exit, close       Stop the server and close this application.
+      quit, shutdown
+    * list, ls          List all available devices.
+    * select <device>   Select and connect to the specified device.
+    * disconnect        Disconnect from the currently selected device.
+    * cmd, command      Enter command mode to send commands manually to your Pad.
+`);
                     return;
             }
 
             if (line.startsWith('select')) {
                 if (selectedDevice != null) {
-                    console.log(`Device "${selectedDevice}" is currently selected. Disconnecting for new device ...`);
+                    logger.info(`Device "${selectedDevice}" is currently selected. Disconnecting for new device ...`);
                     disconnectDevice();
-                    console.log('Device disconnected!');
+                    logger.info('Device disconnected!');
                 }
 
                 try {
                     const newDevice = line.substring('select'.length).trim();
-                    console.log(`Creating connection to device "${newDevice}" ...`);
+                    logger.info(`Creating connection to device "${newDevice}" ...`);
                     connection = new SerialPort(newDevice, { baudRate: 9600, autoOpen: true });
                     connection.on('close', () => {
                         disconnectDevice(true);
                     });
                     board = new BoardConnection(connection);
                     selectedDevice = newDevice;
-                    console.log('Connection established!');
+                    logger.info('Connection established!');
                 } catch (err) {
                     disconnectDevice();
-                    console.log('Error while creating connection! ', err.message)
+                    logger.info('Error while creating connection! ', err.message)
                 }
                 return;
             }
