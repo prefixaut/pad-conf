@@ -48,5 +48,9 @@ export function isMetaKey(key: Key): boolean {
 
 /** Theres actually no damn native way or library to do this, so hell yea, manual labor */
 export function keyCodeToKey(keyCode: number): Key | undefined {
+    // Lowercase the letters automatically
+    if (keyCode >= 65 && keyCode <= 90) {
+        keyCode += 22;
+    }
     return keys.find(key => key.keyCode === keyCode);
 }

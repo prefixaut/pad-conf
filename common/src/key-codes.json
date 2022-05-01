@@ -53,132 +53,132 @@
         {
             "code": "KeyA",
             "key": "a",
-            "keyCode": 65
+            "keyCode": 97
         },
         {
             "code": "KeyB",
             "key": "b",
-            "keyCode": 66
+            "keyCode": 98
         },
         {
             "code": "KeyC",
             "key": "c",
-            "keyCode": 67
+            "keyCode": 99
         },
         {
             "code": "KeyD",
             "key": "d",
-            "keyCode": 68
+            "keyCode": 100
         },
         {
             "code": "KeyE",
             "key": "e",
-            "keyCode": 69
+            "keyCode": 101
         },
         {
             "code": "KeyF",
             "key": "f",
-            "keyCode": 70
+            "keyCode": 102
         },
         {
             "code": "KeyG",
             "key": "g",
-            "keyCode": 71
+            "keyCode": 103
         },
         {
             "code": "KeyH",
             "key": "h",
-            "keyCode": 72
+            "keyCode": 104
         },
         {
             "code": "KeyI",
             "key": "i",
-            "keyCode": 73
+            "keyCode": 105
         },
         {
             "code": "KeyJ",
             "key": "j",
-            "keyCode": 74
+            "keyCode": 106
         },
         {
             "code": "KeyK",
             "key": "k",
-            "keyCode": 75
+            "keyCode": 107
         },
         {
             "code": "KeyL",
             "key": "l",
-            "keyCode": 76
+            "keyCode": 108
         },
         {
             "code": "KeyM",
             "key": "m",
-            "keyCode": 77
+            "keyCode": 109
         },
         {
             "code": "KeyN",
             "key": "n",
-            "keyCode": 78
+            "keyCode": 110
         },
         {
             "code": "KeyO",
             "key": "o",
-            "keyCode": 79
+            "keyCode": 111
         },
         {
             "code": "KeyP",
             "key": "p",
-            "keyCode": 80
+            "keyCode": 112
         },
         {
             "code": "KeyQ",
             "key": "q",
-            "keyCode": 81
+            "keyCode": 113
         },
         {
             "code": "KeyR",
             "key": "r",
-            "keyCode": 82
+            "keyCode": 114
         },
         {
             "code": "KeyS",
             "key": "s",
-            "keyCode": 83
+            "keyCode": 115
         },
         {
             "code": "KeyT",
             "key": "t",
-            "keyCode": 84
+            "keyCode": 116
         },
         {
             "code": "KeyU",
             "key": "u",
-            "keyCode": 85
+            "keyCode": 117
         },
         {
             "code": "KeyV",
             "key": "v",
-            "keyCode": 86
+            "keyCode": 118
         },
         {
             "code": "KeyW",
             "key": "w",
-            "keyCode": 87
+            "keyCode": 119
         },
         {
             "code": "KeyX",
             "key": "x",
-            "keyCode": 88
+            "keyCode": 120
         },
         {
             "code": "KeyY",
             "key": "z",
-            "keyCode": 89
+            "keyCode": 121
         },
         {
             "code": "KeyZ",
             "key": "z",
-            "keyCode": 90
+            "keyCode": 122
         },
         {
             "code": "Comma",
