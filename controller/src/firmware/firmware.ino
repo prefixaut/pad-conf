@@ -9,7 +9,8 @@
 #define DEBUG_COUNTER_LIMIT 250
 #define MEASURE_COUNTER_LIMIT 50
 #define FS_OFFSET 0
-#define KEY_PRESS_DEBOUNCE 20
+#define KEY_PRESS_TIMEOUT 50
+#define KEY_PRESS_DEBOUNCE 35
 
 /*
  * CONFIGURATION START
@@ -29,7 +30,7 @@ class Panel {
   long deadzone_end;
   long key_code;
 
-  Panel() : deadzone_start(0), deadzone_end(0), key_code(KEY_CODE_UNASSIGNED) {}
+  Panel() : deadzone_start(0), deadzone_end(1024), key_code(KEY_CODE_UNASSIGNED) {}
 };
 
 /*
@@ -38,6 +39,7 @@ class Panel {
 Panel panels[PANEL_COUNT];
 bool already_pressed[PANEL_COUNT];
 int press_debounce[PANEL_COUNT];
+int press_timeout[PANEL_COUNT];
 
 int val;
 String serial_msg;
@@ -298,25 +300,27 @@ void loop() {
         Serial.println(" in range");
       }
 
-      if (!already_pressed[panel_index]) {
-        Keyboard.press(panels[panel_index].key_code);
-        already_pressed[panel_index] = true;
-        press_debounce[panel_index] = KEY_PRESS_DEBOUNCE;
+      if (press_timeout[panel_index] <= 0) {
+         if (!already_pressed[panel_index]) {
+          Keyboard.press(panels[panel_index].key_code);
+          already_pressed[panel_index] = true;
+          press_debounce[panel_index] = KEY_PRESS_DEBOUNCE;
+  
+          if (enable_debug) {
+            Serial.print("d m ");
+            Serial.print(panel_index);
+            Serial.println(" now pressing");
+          }
+        } else {
+          // Reset the debounce once it's in an actual value
+          if (enable_debug) {
+            Serial.print("d m ");
+            Serial.print(panel_index);
+            Serial.println(" reset debounce");
+          }
 
-        if (enable_debug) {
-          Serial.print("d m ");
-          Serial.print(panel_index);
-          Serial.println(" now pressing");
+          press_debounce[panel_index] = KEY_PRESS_DEBOUNCE;
         }
-      } else {
-        // Reset the debounce once it's in an actual value
-        if (enable_debug) {
-          Serial.print("d m ");
-          Serial.print(panel_index);
-          Serial.println(" reset debounce");
-        }
-
-        press_debounce[panel_index] = KEY_PRESS_DEBOUNCE;
       }
 
     } else if (already_pressed[panel_index]) {
@@ -328,6 +332,7 @@ void loop() {
       } else {
         Keyboard.release(panels[panel_index].key_code);
         already_pressed[panel_index] = false;
+        press_timeout[panel_index] = KEY_PRESS_TIMEOUT;
 
         if (enable_debug) {
           Serial.print("d m ");
@@ -335,6 +340,10 @@ void loop() {
           Serial.println(" now releasing");
         }
       }
+    }
+
+    if (press_timeout[panel_index] > 0) {
+      press_timeout[panel_index]--;
     }
 
     if (enable_mesassure && (measure_counter % MEASURE_COUNTER_LIMIT) == 0) {
